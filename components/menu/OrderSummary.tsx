@@ -10,9 +10,10 @@ interface OrderSummaryProps {
   tableNumber?: string
   language: Language
   t: any
+  currency: string
   subtotal: number
-  gstAmount: number
-  gstRate: number
+  vatAmount: number
+  vatRate: number
   total: number
   onClose: () => void
   onUpdateQty: (index: number, qty: number) => void
@@ -21,8 +22,8 @@ interface OrderSummaryProps {
 }
 
 export default function OrderSummary({
-  cart, restaurant, tableNumber, language, t,
-  subtotal, gstAmount, gstRate, total,
+  cart, restaurant, tableNumber, language, t, currency,
+  subtotal, vatAmount, vatRate, total,
   onClose, onUpdateQty, onRemove, onClearCart,
 }: OrderSummaryProps) {
   const [orderType, setOrderType] = useState<OrderType>(tableNumber ? 'dine_in' : 'takeaway')
@@ -33,12 +34,13 @@ export default function OrderSummary({
     const url = buildWhatsAppOrderURL({
       restaurantWhatsApp: restaurant.whatsapp_number,
       restaurantNameEn: restaurant.name_en,
+      restaurantNameAr: restaurant.name_ar || undefined,
       tableNumber,
       orderType,
       items: cart,
       subtotal,
-      gstAmount,
-      gstPercentage: gstRate,
+      vatAmount,
+      vatPercentage: vatRate,
       total,
       customerName: customerName || undefined,
       language,
@@ -64,7 +66,7 @@ export default function OrderSummary({
         orderSummary: cart.map(ci => `${ci.quantity}x ${ci.menuItem.name_en}`).join(', '),
         orderItems,
         subtotal,
-        gstAmount,
+        gstAmount: vatAmount,
         total,
         customerName: customerName || null,
         source: tableNumber ? 'qr' : 'link',
@@ -173,7 +175,7 @@ export default function OrderSummary({
                       >+</button>
                     </div>
                     <span style={{ minWidth: 64, textAlign: 'right', fontSize: 14, fontWeight: 700, color: '#f4f4f6' }}>
-                      ₹{ci.totalPrice % 1 === 0 ? ci.totalPrice : ci.totalPrice.toFixed(2)}
+                      {currency} {ci.totalPrice % 1 === 0 ? ci.totalPrice : ci.totalPrice.toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -187,12 +189,12 @@ export default function OrderSummary({
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14, color: '#9999b0' }}>
               <span>{t.menu.subtotal}</span>
-              <span>₹{subtotal.toFixed(2)}</span>
+              <span>{currency} {subtotal.toFixed(2)}</span>
             </div>
-            {gstAmount > 0 && (
+            {vatAmount > 0 && (
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14, color: '#9999b0' }}>
-                <span>{t.menu.gst} ({gstRate}%)</span>
-                <span>₹{gstAmount.toFixed(2)}</span>
+                <span>{t.menu.vat} ({vatRate}%)</span>
+                <span>{currency} {vatAmount.toFixed(2)}</span>
               </div>
             )}
             <div style={{
@@ -201,7 +203,7 @@ export default function OrderSummary({
               borderTop: '1px solid #2a2a3a', paddingTop: 10, marginTop: 4,
             }}>
               <span>{t.menu.total}</span>
-              <span className="gradient-text">₹{total.toFixed(2)}</span>
+              <span className="gradient-text">{currency} {total.toFixed(2)}</span>
             </div>
           </div>
 
