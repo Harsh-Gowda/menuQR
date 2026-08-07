@@ -6,11 +6,8 @@ import { RestaurantTable } from '@/types'
 import { generateQRCode } from '@/lib/qr'
 import { Plus, Download, Trash2, QrCode, ExternalLink, Info } from 'lucide-react'
 
-// Use browser origin so QR works on localhost, LAN IP, or production domain
-function getMenuURL(slug: string, tableNumber?: string): string {
-  const base = typeof window !== 'undefined'
-    ? window.location.origin
-    : (process.env.NEXT_PUBLIC_MENU_BASE_URL || 'http://localhost:3000')
+// Stable base URL — only set after mount to avoid hydration mismatch
+function getMenuURL(base: string, slug: string, tableNumber?: string): string {
   return tableNumber
     ? `${base}/menu/${slug}/${tableNumber}`
     : `${base}/menu/${slug}`
@@ -28,8 +25,12 @@ export default function TablesPage() {
   const [newSection, setNewSection] = useState('Indoor')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [origin, setOrigin] = useState('')
 
-  useEffect(() => { loadTables() }, [])
+  useEffect(() => {
+    setOrigin(window.location.origin)
+    loadTables()
+  }, [])
 
   async function loadTables() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -54,9 +55,10 @@ export default function TablesPage() {
   }
 
   async function generateAllQR(tableList: RestaurantTable[], currentSlug: string) {
+    const base = window.location.origin
     const results: { [id: string]: string } = {}
     for (const t of tableList) {
-      results[t.id] = await generateQRCode(getMenuURL(currentSlug, t.table_number))
+      results[t.id] = await generateQRCode(getMenuURL(base, currentSlug, t.table_number))
     }
     setQrMap(results)
   }
@@ -122,18 +124,18 @@ export default function TablesPage() {
         <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.7 }}>
           <strong style={{ color: 'var(--text-primary)' }}>How it works:</strong>
           {' '}Print the QR → place on table → customer scans with phone →
-          menu opens → they add items → tap <strong style={{ color: '#25d366' }}>"Order via WhatsApp"</strong>
+          menu opens → they add items → tap <strong style={{ color: '#25d366' }}>{"Order via WhatsApp"}</strong>
           {' '}→ WhatsApp opens with the full order pre-filled → they send to you.
           <br />
           <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>
             ⚠️ For testing on phone: make sure phone is on the <strong>same Wi-Fi</strong> as this computer.
-            The QR embeds your current browser URL ({typeof window !== 'undefined' ? window.location.origin : ''}).
+            {origin && <> QR links to: <code style={{color:'#ff6b35'}}>{origin}</code></>}
           </span>
         </div>
       </div>
 
       {/* Menu preview bar */}
-      {slug && (
+      {slug && origin && (
         <div style={{
           background: 'var(--bg-card)', border: '1px solid var(--border)',
           borderRadius: 12, padding: '12px 16px', marginBottom: 24,
@@ -144,11 +146,11 @@ export default function TablesPage() {
             <div>
               <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)' }}>Your menu URL</p>
               <p style={{ margin: '2px 0 0', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'monospace' }}>
-                {getMenuURL(slug)}
+                {getMenuURL(origin, slug)}
               </p>
             </div>
           </div>
-          <a href={getMenuURL(slug)} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+          <a href={getMenuURL(origin, slug)} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
             <button className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, padding: '8px 14px' }}>
               <ExternalLink size={13} /> Preview Menu
             </button>
@@ -176,7 +178,7 @@ export default function TablesPage() {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
           {tables.map(table => {
-            const menuUrl = getMenuURL(slug, table.table_number)
+            const menuUrl = getMenuURL(origin, slug, table.table_number)
             return (
               <div key={table.id} style={{
                 background: 'var(--bg-card)', border: '1px solid var(--border)',
@@ -316,13 +318,13 @@ export default function TablesPage() {
               </div>
 
               {/* Live URL preview */}
-              {newTableNumber.trim() && slug && (
+              {newTableNumber.trim() && slug && origin && (
                 <div style={{ background: 'var(--bg-base)', borderRadius: 10, padding: '10px 14px' }}>
                   <p style={{ margin: '0 0 4px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     QR will link to:
                   </p>
                   <p style={{ margin: 0, fontSize: 12, fontFamily: 'monospace', color: '#ff6b35', wordBreak: 'break-all' }}>
-                    {getMenuURL(slug, newTableNumber.trim())}
+                    {getMenuURL(origin, slug, newTableNumber.trim())}
                   </p>
                 </div>
               )}
