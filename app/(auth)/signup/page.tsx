@@ -16,46 +16,36 @@ export default function SignupPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
-  function slugify(name: string) {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-  }
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    // 1. Create Supabase auth user
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
+    // 1. Call server-side signup API (uses service role key to bypass RLS)
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, restaurantName, whatsapp }),
     })
-    if (authError || !authData.user) {
-      setError(authError?.message || 'Signup failed')
+    const result = await res.json()
+
+    if (!res.ok || !result.success) {
+      setError(result.error || 'Signup failed')
       setLoading(false)
       return
     }
 
-    // 2. Create restaurant row
-    const slug = slugify(restaurantName) + '-' + Math.random().toString(36).slice(2, 6)
-    const { error: restError } = await supabase.from('restaurants').insert({
-      owner_user_id: authData.user.id,
-      name_en: restaurantName,
-      slug,
-      whatsapp_number: whatsapp.startsWith('+') ? whatsapp : `+91${whatsapp}`,
-      currency: 'INR',
-      gst_percentage: 5,
-      gst_type: 'exclusive',
-    })
-
-    if (restError) {
-      setError(restError.message)
+    // 2. Sign in immediately (email is auto-confirmed server-side)
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+    if (signInError) {
+      setError(signInError.message)
       setLoading(false)
       return
     }
 
     setSuccess(true)
-    setTimeout(() => router.push('/dashboard'), 2000)
+    setTimeout(() => router.push('/dashboard'), 1500)
   }
 
   if (success) {
