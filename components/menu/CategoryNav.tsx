@@ -46,7 +46,7 @@ export default function CategoryNav({ categories, items, activeCategory, languag
       >
         {categories.map(cat => {
           const isActive = cat.id === activeCategory
-          const name = language === 'hi' && cat.name_hi ? cat.name_hi : cat.name_en
+          const name = language === 'ar' && cat.name_ar ? cat.name_ar : cat.name_en
           const catItems = items.filter(i => i.category_id === cat.id && i.is_available)
           if (catItems.length === 0) return null
 
@@ -67,7 +67,7 @@ export default function CategoryNav({ categories, items, activeCategory, languag
                 cursor: 'pointer',
                 transition: 'all 0.15s',
                 whiteSpace: 'nowrap',
-                fontFamily: language === 'hi' ? 'Noto Sans Devanagari, sans-serif' : 'Inter, sans-serif',
+                fontFamily: language === 'ar' ? "'Cairo', 'Noto Sans Arabic', sans-serif" : "'Inter', sans-serif",
               }}
             >
               {name}

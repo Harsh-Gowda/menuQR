@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { Restaurant, MenuCategory, MenuItem, CartItem, Language, OrderType } from '@/types'
 import { en } from '@/lib/translations/en'
-import { hi } from '@/lib/translations/hi'
+import { ar } from '@/lib/translations/ar'
 import CategoryNav from './CategoryNav'
 import ItemCard from './ItemCard'
 import ItemModal from './ItemModal'
@@ -23,11 +23,11 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
   const [cart, setCart] = useState<CartItem[]>([])
   const [activeCategory, setActiveCategory] = useState<string>('')
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
-  const [showCart, setShowCart] = useState(false)
   const [showOrderSummary, setShowOrderSummary] = useState(false)
   const categoryRefs = useRef<{ [id: string]: HTMLDivElement | null }>({})
 
-  const t = language === 'hi' ? hi : en
+  const t = language === 'ar' ? ar : en
+  const isRTL = language === 'ar'
 
   // Fetch menu data
   useEffect(() => {
@@ -38,7 +38,8 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
           setRestaurant(data.restaurant)
           setCategories(data.categories)
           setItems(data.items)
-          setLanguage(data.restaurant.default_language || 'en')
+          const defaultLang = data.restaurant.default_language || 'en'
+          setLanguage(defaultLang === 'hi' ? 'en' : defaultLang)
           if (data.categories.length > 0) setActiveCategory(data.categories[0].id)
         }
         setLoading(false)
@@ -87,7 +88,6 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
 
   function addToCart(item: CartItem) {
     setCart(prev => {
-      const key = item.menuItem.id + JSON.stringify(item.selectedOptions)
       const existing = prev.findIndex(
         ci => ci.menuItem.id === item.menuItem.id &&
           JSON.stringify(ci.selectedOptions) === JSON.stringify(item.selectedOptions)
@@ -120,9 +120,12 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
 
   const cartCount = cart.reduce((s, c) => s + c.quantity, 0)
   const subtotal = cart.reduce((s, c) => s + c.totalPrice, 0)
-  const gstRate = restaurant?.gst_percentage ?? 5
-  const gstAmount = restaurant?.gst_type === 'exclusive' ? (subtotal * gstRate) / 100 : 0
-  const total = subtotal + gstAmount
+  const vatRate = restaurant?.gst_percentage ?? 5
+  const vatAmount = restaurant?.gst_type === 'exclusive' ? (subtotal * vatRate) / 100 : 0
+  const total = subtotal + vatAmount
+
+  // Currency symbol
+  const currency = restaurant?.currency || 'AED'
 
   if (loading) {
     return (
@@ -155,10 +158,13 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
 
   if (!restaurant.accept_orders) {
     return (
-      <div style={{
-        minHeight: '100vh', display: 'flex', alignItems: 'center',
-        justifyContent: 'center', background: '#0f0f13', textAlign: 'center', padding: 24,
-      }}>
+      <div
+        dir={isRTL ? 'rtl' : 'ltr'}
+        style={{
+          minHeight: '100vh', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', background: '#0f0f13', textAlign: 'center', padding: 24,
+        }}
+      >
         <div>
           <div style={{ fontSize: 48, marginBottom: 16 }}>⏸️</div>
           <h2 style={{ color: '#f4f4f6', fontSize: 22, marginBottom: 8 }}>{t.menu.orderingPaused}</h2>
@@ -168,17 +174,21 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
     )
   }
 
-  const name = language === 'hi' && restaurant.name_hi ? restaurant.name_hi : restaurant.name_en
+  const name = language === 'ar' && restaurant.name_ar ? restaurant.name_ar : restaurant.name_en
 
   return (
-    <div style={{
-      maxWidth: 480,
-      margin: '0 auto',
-      background: '#0f0f13',
-      minHeight: '100vh',
-      position: 'relative',
-      paddingBottom: cartCount > 0 ? 100 : 32,
-    }}>
+    <div
+      dir={isRTL ? 'rtl' : 'ltr'}
+      style={{
+        maxWidth: 480,
+        margin: '0 auto',
+        background: '#0f0f13',
+        minHeight: '100vh',
+        position: 'relative',
+        paddingBottom: cartCount > 0 ? 100 : 32,
+        fontFamily: isRTL ? "'Cairo', 'Noto Sans Arabic', sans-serif" : "'Inter', sans-serif",
+      }}
+    >
       {/* Header */}
       <div style={{
         background: 'linear-gradient(180deg, #1a1a24 0%, #0f0f13 100%)',
@@ -218,19 +228,21 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
                 <h1 style={{ fontSize: 20, fontWeight: 700, color: '#f4f4f6', margin: 0 }}>
                   {name}
                 </h1>
+                {/* Show secondary name in other language */}
+                {language === 'ar' && restaurant.name_en && (
+                  <p style={{ fontSize: 12, color: '#9999b0', margin: '1px 0 0', fontFamily: 'Inter, sans-serif' }}>
+                    {restaurant.name_en}
+                  </p>
+                )}
+                {language === 'en' && restaurant.name_ar && (
+                  <p style={{ fontSize: 12, color: '#9999b0', margin: '1px 0 0', fontFamily: 'Cairo, sans-serif' }}>
+                    {restaurant.name_ar}
+                  </p>
+                )}
                 {restaurant.area && (
                   <p style={{ fontSize: 13, color: '#9999b0', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
                     📍 {restaurant.area}
                   </p>
-                )}
-                {restaurant.is_veg_only && (
-                  <span style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 4,
-                    fontSize: 11, fontWeight: 600, color: '#22c55e',
-                    background: 'rgba(34,197,94,0.1)', borderRadius: 20, padding: '2px 8px', marginTop: 4,
-                  }}>
-                    🌿 Pure Veg
-                  </span>
                 )}
               </div>
             </div>
@@ -238,7 +250,7 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
             {/* Language toggle */}
             <button
               id="language-toggle"
-              onClick={() => setLanguage(l => l === 'en' ? 'hi' : 'en')}
+              onClick={() => setLanguage(l => l === 'en' ? 'ar' : 'en')}
               style={{
                 background: 'rgba(255,255,255,0.06)',
                 border: '1px solid rgba(255,255,255,0.1)',
@@ -249,9 +261,10 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
                 fontWeight: 600,
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
+                flexShrink: 0,
               }}
             >
-              {language === 'en' ? '🇮🇳 हिंदी' : '🇬🇧 English'}
+              {language === 'en' ? '🇦🇪 العربية' : '🇬🇧 English'}
             </button>
           </div>
         </div>
@@ -273,7 +286,7 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
         {categories.map(cat => {
           const catItems = items.filter(i => i.category_id === cat.id && i.is_available)
           if (catItems.length === 0) return null
-          const catName = language === 'hi' && cat.name_hi ? cat.name_hi : cat.name_en
+          const catName = language === 'ar' && cat.name_ar ? cat.name_ar : cat.name_en
           return (
             <div
               key={cat.id}
@@ -285,12 +298,12 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
                 fontWeight: 700,
                 color: '#9999b0',
                 textTransform: 'uppercase',
-                letterSpacing: '0.08em',
+                letterSpacing: isRTL ? '0' : '0.08em',
                 padding: '20px 0 10px',
                 margin: 0,
                 borderBottom: '1px solid #2a2a3a',
                 marginBottom: 12,
-                fontFamily: language === 'hi' ? 'Noto Sans Devanagari, sans-serif' : 'Inter, sans-serif',
+                fontFamily: isRTL ? "'Cairo', 'Noto Sans Arabic', sans-serif" : "'Inter', sans-serif",
               }}>
                 {catName}
               </h2>
@@ -299,6 +312,7 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
                   key={item.id}
                   item={item}
                   language={language}
+                  currency={currency}
                   onSelect={() => setSelectedItem(item)}
                   onQuickAdd={() => addToCart({
                     menuItem: item,
@@ -344,6 +358,7 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              fontFamily: isRTL ? "'Cairo', 'Noto Sans Arabic', sans-serif" : "'Inter', sans-serif",
             }}
           >
             <span style={{
@@ -355,7 +370,7 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
               {cartCount} {cartCount === 1 ? t.menu.item : t.menu.items}
             </span>
             <span>{t.menu.viewOrder}</span>
-            <span>₹{total % 1 === 0 ? total : total.toFixed(2)}</span>
+            <span>{currency} {total % 1 === 0 ? total : total.toFixed(2)}</span>
           </button>
         </div>
       )}
@@ -365,6 +380,7 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
         <ItemModal
           item={selectedItem}
           language={language}
+          currency={currency}
           t={t}
           onClose={() => setSelectedItem(null)}
           onAdd={addToCart}
@@ -379,9 +395,10 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
           tableNumber={tableNumber}
           language={language}
           t={t}
+          currency={currency}
           subtotal={subtotal}
-          gstAmount={gstAmount}
-          gstRate={gstRate}
+          vatAmount={vatAmount}
+          vatRate={vatRate}
           total={total}
           onClose={() => setShowOrderSummary(false)}
           onUpdateQty={updateCartQty}

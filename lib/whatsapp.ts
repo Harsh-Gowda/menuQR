@@ -3,12 +3,13 @@ import { CartItem, OrderType, Language } from '@/types'
 interface OrderDetails {
   restaurantWhatsApp: string
   restaurantNameEn: string
+  restaurantNameAr?: string
   tableNumber?: string
   orderType: OrderType
   items: CartItem[]
   subtotal: number
-  gstAmount: number
-  gstPercentage: number
+  vatAmount: number
+  vatPercentage: number
   total: number
   customerName?: string
   language: Language
@@ -17,8 +18,8 @@ interface OrderDetails {
 export function buildWhatsAppOrderURL(order: OrderDetails): string {
   const phoneClean = order.restaurantWhatsApp.replace(/\D/g, '')
   const message =
-    order.language === 'hi'
-      ? buildHindiMessage(order)
+    order.language === 'ar'
+      ? buildArabicMessage(order)
       : buildEnglishMessage(order)
   const encoded = encodeURIComponent(message)
   return `https://wa.me/${phoneClean}?text=${encoded}`
@@ -39,7 +40,7 @@ function buildEnglishMessage(order: OrderDetails): string {
       let line = `• ${cartItem.quantity}× ${cartItem.menuItem.name_en}`
       if (opts.length) line += ` (${opts.join(', ')})`
       if (cartItem.notes) line += ` — Note: ${cartItem.notes}`
-      line += ` — ₹${cartItem.totalPrice.toFixed(2)}`
+      line += ` — AED ${cartItem.totalPrice.toFixed(2)}`
       return line
     })
     .join('\n')
@@ -52,45 +53,47 @@ function buildEnglishMessage(order: OrderDetails): string {
 ${itemLines}
 
 ━━━━━━━━━━━━━━━━
-Subtotal: ₹${order.subtotal.toFixed(2)}
-GST (${order.gstPercentage}%): ₹${order.gstAmount.toFixed(2)}
-*TOTAL: ₹${order.total.toFixed(2)}*
+Subtotal: AED ${order.subtotal.toFixed(2)}
+VAT (${order.vatPercentage}%): AED ${order.vatAmount.toFixed(2)}
+*TOTAL: AED ${order.total.toFixed(2)}*
 ━━━━━━━━━━━━━━━━
-Ordered via MenuQR.in`
+Ordered via MenuQR.ae`
 }
 
-function buildHindiMessage(order: OrderDetails): string {
+function buildArabicMessage(order: OrderDetails): string {
+  const restaurantName = order.restaurantNameAr || order.restaurantNameEn
+
   const orderTypeLabel = {
-    dine_in: `डाइन इन — टेबल ${order.tableNumber || '?'}`,
-    takeaway: 'टेकअवे',
-    delivery: 'डिलीवरी',
+    dine_in: `تناول في المطعم — طاولة ${order.tableNumber || '?'}`,
+    takeaway: 'استلام',
+    delivery: 'توصيل',
   }[order.orderType]
 
   const itemLines = order.items
     .map((cartItem) => {
-      const name = cartItem.menuItem.name_hi || cartItem.menuItem.name_en
+      const name = cartItem.menuItem.name_ar || cartItem.menuItem.name_en
       const opts = Object.values(cartItem.selectedOptions)
-        .map((o) => o.label_hi || o.label)
+        .map((o) => o.label_ar || o.label)
         .filter(Boolean)
       let line = `• ${cartItem.quantity}× ${name}`
       if (opts.length) line += ` (${opts.join(', ')})`
-      if (cartItem.notes) line += ` — नोट: ${cartItem.notes}`
-      line += ` — ₹${cartItem.totalPrice.toFixed(2)}`
+      if (cartItem.notes) line += ` — ملاحظة: ${cartItem.notes}`
+      line += ` — ${cartItem.totalPrice.toFixed(2)} درهم`
       return line
     })
     .join('\n')
 
-  return `🍽️ *नया ऑर्डर — ${order.restaurantNameEn}*
+  return `🍽️ *طلب جديد — ${restaurantName}*
 
-*ऑर्डर प्रकार:* ${orderTypeLabel}${order.customerName ? `\n*नाम:* ${order.customerName}` : ''}
+*نوع الطلب:* ${orderTypeLabel}${order.customerName ? `\n*الاسم:* ${order.customerName}` : ''}
 
-*आइटम:*
+*الطلبات:*
 ${itemLines}
 
 ━━━━━━━━━━━━━━━━
-उप-योग: ₹${order.subtotal.toFixed(2)}
-GST (${order.gstPercentage}%): ₹${order.gstAmount.toFixed(2)}
-*कुल: ₹${order.total.toFixed(2)}*
+المجموع: ${order.subtotal.toFixed(2)} درهم
+ضريبة القيمة المضافة (${order.vatPercentage}%): ${order.vatAmount.toFixed(2)} درهم
+*الإجمالي: ${order.total.toFixed(2)} درهم*
 ━━━━━━━━━━━━━━━━
-MenuQR.in के माध्यम से ऑर्डर किया`
+تم الطلب عبر MenuQR.ae`
 }

@@ -5,15 +5,19 @@ import { MenuItem, Language } from '@/types'
 interface ItemCardProps {
   item: MenuItem
   language: Language
+  currency: string
   onSelect: () => void
   onQuickAdd: () => void
 }
 
-export default function ItemCard({ item, language, onSelect, onQuickAdd }: ItemCardProps) {
-  const name = language === 'hi' && item.name_hi ? item.name_hi : item.name_en
-  const nameSecondary = language === 'hi' && item.name_hi ? item.name_en : item.name_hi
-  const desc = language === 'hi' && item.description_hi ? item.description_hi : item.description_en
+export default function ItemCard({ item, language, currency, onSelect, onQuickAdd }: ItemCardProps) {
+  const isArabic = language === 'ar'
+  const name = isArabic && item.name_ar ? item.name_ar : item.name_en
+  const nameSecondary = isArabic ? item.name_en : (item.name_ar || null)
+  const desc = isArabic && item.description_ar ? item.description_ar : item.description_en
   const hasOptions = item.customisation_groups && item.customisation_groups.length > 0
+
+  const arabicFont = "'Cairo', 'Noto Sans Arabic', sans-serif"
 
   return (
     <div
@@ -21,6 +25,7 @@ export default function ItemCard({ item, language, onSelect, onQuickAdd }: ItemC
       onClick={onSelect}
       style={{
         display: 'flex',
+        flexDirection: isArabic ? 'row-reverse' : 'row',
         gap: 12,
         background: '#1a1a24',
         border: '1px solid #2a2a3a',
@@ -32,27 +37,22 @@ export default function ItemCard({ item, language, onSelect, onQuickAdd }: ItemC
         overflow: 'hidden',
       }}
     >
-      {/* Left — text */}
+      {/* Text content */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Veg/NonVeg dot */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-          {item.is_veg ? (
-            <div className="veg-dot" title="Vegetarian" />
-          ) : (
-            <div className="nonveg-dot" title="Non-Vegetarian" />
+        {/* Badges row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4, flexWrap: 'wrap', flexDirection: isArabic ? 'row-reverse' : 'row' }}>
+          {item.is_featured && (
+            <span className="badge badge-yellow">⭐ {isArabic ? 'الأكثر مبيعاً' : 'Best Seller'}</span>
           )}
-          {item.is_jain && (
-            <span style={{
-              fontSize: 10, fontWeight: 600, color: '#a78bfa',
-              background: 'rgba(167,139,250,0.1)', borderRadius: 20, padding: '1px 7px',
-            }}>Jain</span>
+          {item.is_new && (
+            <span className="badge badge-blue">✨ {isArabic ? 'جديد' : 'New'}</span>
           )}
-          {/* Badges */}
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-            {item.is_featured && <span className="badge badge-yellow">⭐ {language === 'hi' ? 'बेस्ट सेलर' : 'Best Seller'}</span>}
-            {item.is_new && <span className="badge badge-blue">✨ {language === 'hi' ? 'नया' : 'New'}</span>}
-            {item.is_spicy && <span className="badge badge-red">🌶️ {language === 'hi' ? 'तीखा' : 'Spicy'}</span>}
-          </div>
+          {item.is_spicy && (
+            <span className="badge badge-red">🌶️ {isArabic ? 'حار' : 'Spicy'}</span>
+          )}
+          {item.is_veg && (
+            <span className="badge badge-green">🌱 {isArabic ? 'نباتي' : 'Veg'}</span>
+          )}
         </div>
 
         {/* Name */}
@@ -62,12 +62,20 @@ export default function ItemCard({ item, language, onSelect, onQuickAdd }: ItemC
           color: '#f4f4f6',
           margin: '0 0 2px',
           lineHeight: 1.3,
-          fontFamily: language === 'hi' ? 'Noto Sans Devanagari, sans-serif' : 'Inter, sans-serif',
+          fontFamily: isArabic ? arabicFont : 'Inter, sans-serif',
+          textAlign: isArabic ? 'right' : 'left',
         }}>
           {name}
         </h3>
         {nameSecondary && (
-          <p style={{ fontSize: 12, color: '#55556a', margin: '0 0 6px', lineHeight: 1.3 }}>
+          <p style={{
+            fontSize: 12,
+            color: '#55556a',
+            margin: '0 0 4px',
+            lineHeight: 1.3,
+            textAlign: isArabic ? 'right' : 'left',
+            fontFamily: isArabic ? 'Inter, sans-serif' : arabicFont,
+          }}>
             {nameSecondary}
           </p>
         )}
@@ -83,20 +91,27 @@ export default function ItemCard({ item, language, onSelect, onQuickAdd }: ItemC
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
+            textAlign: isArabic ? 'right' : 'left',
+            fontFamily: isArabic ? arabicFont : 'Inter, sans-serif',
           }}>
             {desc}
           </p>
         )}
 
         {/* Price row */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexDirection: isArabic ? 'row-reverse' : 'row',
+        }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 16, fontWeight: 700, color: '#f4f4f6' }}>
-              ₹{item.price}
+              {currency} {item.price}
             </span>
             {item.original_price && item.original_price > item.price && (
               <span style={{ fontSize: 13, color: '#55556a', textDecoration: 'line-through' }}>
-                ₹{item.original_price}
+                {currency} {item.original_price}
               </span>
             )}
           </div>
@@ -131,7 +146,7 @@ export default function ItemCard({ item, language, onSelect, onQuickAdd }: ItemC
         </div>
       </div>
 
-      {/* Right — image */}
+      {/* Image */}
       {item.image_url && (
         <div style={{ flexShrink: 0 }}>
           <img
@@ -156,7 +171,7 @@ export default function ItemCard({ item, language, onSelect, onQuickAdd }: ItemC
           borderRadius: 14,
         }}>
           <span style={{ color: '#9999b0', fontWeight: 700, fontSize: 14 }}>
-            {language === 'hi' ? 'स्टॉक खत्म' : 'Sold Out'}
+            {isArabic ? 'نفد المخزون' : 'Sold Out'}
           </span>
         </div>
       )}

@@ -10,7 +10,7 @@ export const en = {
     takeaway: 'Takeaway',
     delivery: 'Delivery',
     subtotal: 'Subtotal',
-    gst: 'GST',
+    vat: 'VAT',
     total: 'Total',
     items: 'items',
     item: 'item',
@@ -22,6 +22,7 @@ export const en = {
     vegetarian: 'Veg',
     nonVegetarian: 'Non-Veg',
     jain: 'Jain',
+    halal: 'Halal',
     chefsPick: "Chef's Pick",
     bestSeller: 'Best Seller',
     sendOrder: 'Send Order',
@@ -39,7 +40,7 @@ export const en = {
     orderingPausedMsg: 'The restaurant is not accepting orders right now.',
     selectOrderType: 'Select Order Type',
     tableNumber: 'Table Number',
-    inclusive: 'incl. GST',
+    inclusive: 'incl. VAT',
   },
   nav: {
     dashboard: 'Dashboard',
@@ -54,7 +55,7 @@ export const en = {
   dashboard: {
     menuViews: 'Menu Views',
     waOrders: 'WhatsApp Orders',
-    estSaved: 'Est. Saved vs Swiggy',
+    estSaved: 'Est. Saved vs Talabat',
     today: 'Today',
     thisMonth: 'This Month',
     testMenu: 'Test Your Menu',
@@ -66,7 +67,7 @@ export const en = {
     orderingOff: 'Ordering is PAUSED',
     welcomeBack: 'Welcome back',
     trialDays: 'days left in trial',
-    upgrade: 'Upgrade to Pro',
+    upgrade: 'Upgrade — AED 199/mo',
   },
   auth: {
     login: 'Login',

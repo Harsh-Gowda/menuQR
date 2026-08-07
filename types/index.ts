@@ -4,7 +4,8 @@ export interface Restaurant {
   id: string
   owner_user_id: string
   name_en: string
-  name_hi: string | null
+  name_ar: string | null   // Arabic name (UAE)
+  name_hi: string | null   // Hindi name (legacy)
   slug: string
   logo_url: string | null
   cover_image_url: string | null
@@ -12,15 +13,16 @@ export interface Restaurant {
   whatsapp_number: string
   phone: string | null
   address_en: string | null
+  address_ar: string | null
   address_hi: string | null
   area: string | null
   google_maps_url: string | null
-  currency: string
-  gst_percentage: number
+  currency: string          // 'AED' for UAE
+  gst_percentage: number    // treated as VAT percentage (5% for UAE)
   gst_type: 'inclusive' | 'exclusive'
   show_gst: boolean
   is_veg_only: boolean
-  default_language: 'en' | 'hi'
+  default_language: 'en' | 'ar' | 'hi'
   accept_orders: boolean
   operating_hours: Json | null
   plan: 'trial' | 'basic' | 'pro'
@@ -28,7 +30,7 @@ export interface Restaurant {
   subscription_active: boolean
   total_menu_views: number
   total_whatsapp_orders: number
-  monthly_fee_inr: number
+  monthly_fee_inr: number   // used as AED fee for UAE
   created_at: string
   updated_at: string
 }
@@ -37,8 +39,10 @@ export interface MenuCategory {
   id: string
   restaurant_id: string
   name_en: string
-  name_hi: string | null
+  name_ar: string | null   // Arabic name
+  name_hi: string | null   // Hindi name (legacy)
   description_en: string | null
+  description_ar: string | null
   description_hi: string | null
   image_url: string | null
   sort_order: number
@@ -53,8 +57,10 @@ export interface MenuItem {
   restaurant_id: string
   category_id: string
   name_en: string
-  name_hi: string | null
+  name_ar: string | null   // Arabic name
+  name_hi: string | null   // Hindi name (legacy)
   description_en: string | null
+  description_ar: string | null
   description_hi: string | null
   price: number
   original_price: number | null
@@ -74,6 +80,7 @@ export interface MenuItem {
 
 export interface CustomisationGroup {
   name: string
+  name_ar?: string
   name_hi?: string
   required?: boolean
   options: CustomisationOption[]
@@ -81,6 +88,7 @@ export interface CustomisationGroup {
 
 export interface CustomisationOption {
   label: string
+  label_ar?: string
   label_hi?: string
   price_add: number
 }
@@ -105,12 +113,12 @@ export interface OrderLog {
   order_summary: string
   order_items: Json
   subtotal: number | null
-  gst_amount: number | null
+  gst_amount: number | null  // used as vat_amount for UAE
   total_amount: number | null
   customer_name: string | null
   customer_phone: string | null
   source: 'qr' | 'link' | 'direct'
-  language: 'en' | 'hi'
+  language: 'en' | 'ar' | 'hi'
   created_at: string
 }
 
@@ -122,5 +130,5 @@ export interface CartItem {
   totalPrice: number
 }
 
-export type Language = 'en' | 'hi'
+export type Language = 'en' | 'ar' | 'hi'
 export type OrderType = 'dine_in' | 'takeaway' | 'delivery'
