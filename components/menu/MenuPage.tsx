@@ -182,68 +182,88 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
       style={{
         maxWidth: 480,
         margin: '0 auto',
-        background: '#0f0f13',
+        background: 'var(--bg-base)',
         minHeight: '100vh',
         position: 'relative',
-        paddingBottom: cartCount > 0 ? 100 : 32,
+        paddingBottom: cartCount > 0 ? 100 : 40,
         fontFamily: isRTL ? "'Cairo', 'Noto Sans Arabic', sans-serif" : "'Inter', sans-serif",
       }}
     >
-      {/* Header */}
+      {/* ── Header ── */}
       <div style={{
-        background: 'linear-gradient(180deg, #1a1a24 0%, #0f0f13 100%)',
-        padding: '24px 20px 16px',
         position: 'relative',
+        overflow: 'hidden',
+        padding: '0 0 0',
       }}>
-        {/* Cover image */}
-        {restaurant.cover_image_url && (
+        {/* Cover image with gradient overlay */}
+        {restaurant.cover_image_url ? (
+          <div style={{ position: 'relative', height: 140 }}>
+            <img
+              src={restaurant.cover_image_url}
+              alt={restaurant.name_en}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: 'linear-gradient(to bottom, rgba(8,8,16,0.2) 0%, rgba(8,8,16,0.95) 100%)',
+            }} />
+          </div>
+        ) : (
           <div style={{
-            position: 'absolute', inset: 0, zIndex: 0,
-            backgroundImage: `url(${restaurant.cover_image_url})`,
-            backgroundSize: 'cover', backgroundPosition: 'center',
-            opacity: 0.15,
+            height: 80,
+            background: 'linear-gradient(135deg,rgba(255,107,53,0.08),rgba(99,102,241,0.06))',
           }} />
         )}
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            {/* Logo + name */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+
+        {/* Restaurant info */}
+        <div style={{
+          padding: restaurant.cover_image_url ? '0 20px 20px' : '20px 20px 20px',
+          marginTop: restaurant.cover_image_url ? -60 : 0,
+          position: 'relative', zIndex: 1,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14 }}>
+              {/* Logo */}
               {restaurant.logo_url ? (
                 <img
                   src={restaurant.logo_url}
                   alt={restaurant.name_en}
-                  style={{ width: 52, height: 52, borderRadius: 12, objectFit: 'cover' }}
+                  style={{
+                    width: 60, height: 60, borderRadius: 16, objectFit: 'cover',
+                    border: '3px solid var(--bg-base)',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                    flexShrink: 0,
+                  }}
                 />
               ) : (
                 <div style={{
-                  width: 52, height: 52, borderRadius: 12,
-                  background: 'linear-gradient(135deg, #ff6b35, #f7c948)',
+                  width: 60, height: 60, borderRadius: 16,
+                  background: 'linear-gradient(135deg,#ff6b35,#f7c948)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 24,
-                }}>
-                  🍽️
-                </div>
+                  fontSize: 28, flexShrink: 0,
+                  border: '3px solid var(--bg-base)',
+                  boxShadow: '0 8px 24px rgba(255,107,53,0.3)',
+                }}>🍽️</div>
               )}
+
               <div>
-                <h1 style={{ fontSize: 20, fontWeight: 700, color: '#f4f4f6', margin: 0 }}>
+                <h1 style={{
+                  fontSize: 21, fontWeight: 800, color: '#f0f0ff', margin: 0,
+                  letterSpacing: '-0.4px', lineHeight: 1.2,
+                  fontFamily: isRTL ? "'Cairo', 'Noto Sans Arabic', sans-serif" : "'Inter', sans-serif",
+                }}>
                   {name}
                 </h1>
-                {/* Show secondary name in other language */}
-                {language === 'ar' && restaurant.name_en && (
-                  <p style={{ fontSize: 12, color: '#9999b0', margin: '1px 0 0', fontFamily: 'Inter, sans-serif' }}>
-                    {restaurant.name_en}
-                  </p>
-                )}
-                {language === 'en' && restaurant.name_ar && (
-                  <p style={{ fontSize: 12, color: '#9999b0', margin: '1px 0 0', fontFamily: 'Cairo, sans-serif' }}>
-                    {restaurant.name_ar}
-                  </p>
-                )}
                 {restaurant.area && (
-                  <p style={{ fontSize: 13, color: '#9999b0', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '3px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
                     📍 {restaurant.area}
                   </p>
                 )}
+                {/* Order status indicator */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4 }}>
+                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22c55e', animation: 'pulse 2s infinite', display: 'inline-block' }} />
+                  <span style={{ fontSize: 12, color: '#4ade80', fontWeight: 600 }}>Accepting orders</span>
+                </div>
               </div>
             </div>
 
@@ -252,19 +272,16 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
               id="language-toggle"
               onClick={() => setLanguage(l => l === 'en' ? 'ar' : 'en')}
               style={{
-                background: 'rgba(255,255,255,0.06)',
+                background: 'rgba(255,255,255,0.07)',
                 border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 20,
-                padding: '6px 14px',
-                color: '#f4f4f6',
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
+                borderRadius: 20, padding: '7px 14px',
+                color: '#f0f0ff', fontSize: 13, fontWeight: 600,
+                cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
+                backdropFilter: 'blur(8px)',
+                transition: 'background 0.15s',
               }}
             >
-              {language === 'en' ? '🇦🇪 العربية' : '🇬🇧 English'}
+              {language === 'en' ? '🇦🇪 عربي' : '🇬🇧 EN'}
             </button>
           </div>
         </div>
@@ -293,20 +310,14 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
               ref={el => { categoryRefs.current[cat.id] = el }}
               style={{ marginBottom: 8, scrollMarginTop: 120 }}
             >
-              <h2 style={{
-                fontSize: 15,
-                fontWeight: 700,
-                color: '#9999b0',
-                textTransform: 'uppercase',
-                letterSpacing: isRTL ? '0' : '0.08em',
-                padding: '20px 0 10px',
-                margin: 0,
-                borderBottom: '1px solid #2a2a3a',
-                marginBottom: 12,
-                fontFamily: isRTL ? "'Cairo', 'Noto Sans Arabic', sans-serif" : "'Inter', sans-serif",
-              }}>
-                {catName}
-              </h2>
+              <div style={{ padding: '20px 0 12px', marginBottom: 12, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <h2 style={{
+                  fontSize: 13, fontWeight: 800, color: 'var(--text-muted)',
+                  textTransform: 'uppercase', letterSpacing: isRTL ? '0' : '0.1em',
+                  margin: 0,
+                  fontFamily: isRTL ? "'Cairo', 'Noto Sans Arabic', sans-serif" : "'Inter', sans-serif",
+                }}>{catName}</h2>
+              </div>
               {catItems.map(item => (
                 <ItemCard
                   key={item.id}
@@ -336,9 +347,10 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
             position: 'fixed', bottom: 0, left: '50%',
             transform: 'translateX(-50%)',
             width: '100%', maxWidth: 480,
-            padding: '12px 16px',
-            background: '#1a1a24',
-            borderTop: '1px solid #2a2a3a',
+            padding: '12px 16px 16px',
+            background: 'rgba(8,8,16,0.85)',
+            backdropFilter: 'blur(20px)',
+            borderTop: '1px solid rgba(255,255,255,0.08)',
             zIndex: 40,
           }}
         >
@@ -347,30 +359,24 @@ export default function MenuPage({ slug, tableNumber }: MenuPageProps) {
             onClick={() => setShowOrderSummary(true)}
             style={{
               width: '100%',
-              background: 'linear-gradient(135deg, #ff6b35, #e85520)',
-              border: 'none',
-              borderRadius: 14,
-              padding: '14px 20px',
-              color: 'white',
-              fontSize: 16,
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              background: 'linear-gradient(135deg,#ff6b35,#e85520)',
+              border: 'none', borderRadius: 16,
+              padding: '14px 20px', color: 'white',
+              fontSize: 16, fontWeight: 700, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               fontFamily: isRTL ? "'Cairo', 'Noto Sans Arabic', sans-serif" : "'Inter', sans-serif",
+              boxShadow: '0 4px 24px rgba(255,107,53,0.4)',
+              letterSpacing: '-0.2px',
             }}
           >
             <span style={{
               background: 'rgba(255,255,255,0.2)',
-              borderRadius: 8,
-              padding: '2px 10px',
-              fontSize: 14,
+              borderRadius: 8, padding: '2px 10px', fontSize: 14, fontWeight: 800,
             }}>
-              {cartCount} {cartCount === 1 ? t.menu.item : t.menu.items}
+              {cartCount}
             </span>
-            <span>{t.menu.viewOrder}</span>
-            <span>{currency} {total % 1 === 0 ? total : total.toFixed(2)}</span>
+            <span>{t.menu.viewOrder} 🛒</span>
+            <span style={{ fontWeight: 800 }}>{currency} {total % 1 === 0 ? total : total.toFixed(2)}</span>
           </button>
         </div>
       )}
