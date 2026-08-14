@@ -26,16 +26,16 @@ export default function CategoryNav({ categories, items, activeCategory, languag
 
   return (
     <div style={{
-      background: 'rgba(8,8,16,0.88)',
-      backdropFilter: 'blur(20px)',
-      borderBottom: '1px solid rgba(255,255,255,0.07)',
+      background: 'rgba(255, 255, 255, 0.95)',
+      backdropFilter: 'blur(12px)',
+      borderBottom: '1px solid var(--border)',
     }}>
       <div
         ref={scrollRef}
         className="hide-scrollbar"
         style={{
           display: 'flex', overflowX: 'auto',
-          gap: 6, padding: '10px 14px',
+          gap: 6, padding: '12px 16px',
         }}
       >
         {categories.map(cat => {
@@ -51,25 +51,21 @@ export default function CategoryNav({ categories, items, activeCategory, languag
               onClick={() => onSelect(cat.id)}
               style={{
                 flexShrink: 0,
-                padding: '7px 16px',
-                borderRadius: 20,
-                border: isActive
-                  ? '1.5px solid rgba(255,107,53,0.5)'
-                  : '1.5px solid rgba(255,255,255,0.06)',
+                padding: '8px 16px',
+                borderRadius: 100,
+                border: 'none',
                 background: isActive
-                  ? 'rgba(255,107,53,0.12)'
-                  : 'rgba(255,255,255,0.03)',
-                color: isActive ? '#ff7a4a' : 'var(--text-secondary)',
-                fontSize: 13,
-                fontWeight: isActive ? 700 : 500,
+                  ? 'var(--text-primary)'
+                  : 'var(--bg-surface)',
+                color: isActive ? 'white' : 'var(--text-secondary)',
+                fontSize: 14,
+                fontWeight: isActive ? 600 : 500,
                 cursor: 'pointer',
-                transition: 'all 0.18s',
+                transition: 'all 0.15s',
                 whiteSpace: 'nowrap',
                 fontFamily: language === 'ar'
                   ? "'Cairo', 'Noto Sans Arabic', sans-serif"
-                  : "'Inter', sans-serif",
-                letterSpacing: isActive ? '-0.1px' : '0',
-                boxShadow: isActive ? '0 0 12px rgba(255,107,53,0.15)' : 'none',
+                  : 'inherit',
               }}
             >
               {name}

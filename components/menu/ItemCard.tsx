@@ -1,6 +1,7 @@
 'use client'
 
 import { MenuItem, Language } from '@/types'
+import { Plus } from 'lucide-react'
 
 interface ItemCardProps {
   item: MenuItem
@@ -21,37 +22,24 @@ export default function ItemCard({ item, language, currency, onSelect, onQuickAd
 
   return (
     <div
-      className="menu-card"
+      className="card"
       onClick={onSelect}
       style={{
         display: 'flex',
         flexDirection: isArabic ? 'row-reverse' : 'row',
         gap: 14,
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.07)',
-        borderRadius: 18,
-        padding: '14px 14px',
-        marginBottom: 10,
+        padding: 14,
+        marginBottom: 12,
         cursor: 'pointer',
         position: 'relative',
         overflow: 'hidden',
-        transition: 'background 0.2s, border-color 0.2s',
-      }}
-      onMouseEnter={e => {
-        (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.05)'
-        ;(e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,107,53,0.2)'
-      }}
-      onMouseLeave={e => {
-        (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.03)'
-        ;(e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.07)'
       }}
     >
       {/* Subtle left accent for veg */}
       {item.is_veg && (
         <div style={{
-          position: 'absolute', left: 0, top: 0, bottom: 0, width: 3,
-          background: 'linear-gradient(180deg,#22c55e,transparent)',
-          borderRadius: '18px 0 0 18px',
+          position: 'absolute', left: 0, top: 0, bottom: 0, width: 4,
+          background: '#22c55e',
         }} />
       )}
 
@@ -59,21 +47,21 @@ export default function ItemCard({ item, language, currency, onSelect, onQuickAd
       <div style={{ flex: 1, minWidth: 0 }}>
         {/* Badges */}
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 5, marginBottom: 6,
+          display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8,
           flexWrap: 'wrap', flexDirection: isArabic ? 'row-reverse' : 'row',
         }}>
           {item.is_featured && (
             <span style={{
               fontSize: 10, fontWeight: 800, letterSpacing: '0.04em',
-              background: 'rgba(247,201,72,0.12)', color: '#facc15',
-              border: '1px solid rgba(247,201,72,0.2)', borderRadius: 6, padding: '2px 8px',
+              background: '#fef3c7', color: '#b45309',
+              borderRadius: 6, padding: '2px 8px',
             }}>⭐ BEST SELLER</span>
           )}
           {item.is_new && (
             <span style={{
               fontSize: 10, fontWeight: 800, letterSpacing: '0.04em',
-              background: 'rgba(99,102,241,0.12)', color: '#818cf8',
-              border: '1px solid rgba(99,102,241,0.2)', borderRadius: 6, padding: '2px 8px',
+              background: 'var(--brand-primary-light)', color: 'var(--brand-primary)',
+              borderRadius: 6, padding: '2px 8px',
             }}>✨ NEW</span>
           )}
           {item.is_spicy && <span style={{ fontSize: 13 }}>🌶️</span>}
@@ -81,9 +69,9 @@ export default function ItemCard({ item, language, currency, onSelect, onQuickAd
 
         {/* Name */}
         <h3 style={{
-          fontSize: 15, fontWeight: 700, color: '#f0f0ff',
-          margin: '0 0 4px', lineHeight: 1.35,
-          fontFamily: isArabic ? arabicFont : 'Inter, sans-serif',
+          fontSize: 16, fontWeight: 700, color: 'var(--text-primary)',
+          margin: '0 0 6px', lineHeight: 1.3,
+          fontFamily: isArabic ? arabicFont : 'inherit',
           textAlign: isArabic ? 'right' : 'left',
           letterSpacing: '-0.2px',
         }}>{name}</h3>
@@ -91,12 +79,12 @@ export default function ItemCard({ item, language, currency, onSelect, onQuickAd
         {/* Description */}
         {desc && (
           <p style={{
-            fontSize: 13, color: 'rgba(144,144,176,0.8)',
-            margin: '0 0 10px', lineHeight: 1.55,
+            fontSize: 14, color: 'var(--text-secondary)',
+            margin: '0 0 12px', lineHeight: 1.5,
             display: '-webkit-box', WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical', overflow: 'hidden',
             textAlign: isArabic ? 'right' : 'left',
-            fontFamily: isArabic ? arabicFont : 'Inter, sans-serif',
+            fontFamily: isArabic ? arabicFont : 'inherit',
           }}>{desc}</p>
         )}
 
@@ -106,18 +94,18 @@ export default function ItemCard({ item, language, currency, onSelect, onQuickAd
           flexDirection: isArabic ? 'row-reverse' : 'row',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 17, fontWeight: 800, color: '#f0f0ff', letterSpacing: '-0.3px' }}>
+            <span style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
               {currency} {item.price}
             </span>
             {hasDiscount && (
               <>
-                <span style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'line-through' }}>
+                <span style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'line-through' }}>
                   {currency} {item.original_price}
                 </span>
                 <span style={{
-                  fontSize: 10, fontWeight: 800, color: '#4ade80',
-                  background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)',
-                  borderRadius: 6, padding: '1px 6px',
+                  fontSize: 11, fontWeight: 700, color: '#166534',
+                  background: '#dcfce7',
+                  borderRadius: 6, padding: '2px 8px',
                 }}>{discountPct}% OFF</span>
               </>
             )}
@@ -132,24 +120,19 @@ export default function ItemCard({ item, language, currency, onSelect, onQuickAd
               else onQuickAdd()
             }}
             style={{
-              background: 'linear-gradient(135deg,#ff6b35,#e85520)',
-              border: 'none', borderRadius: 10,
-              width: 34, height: 34,
-              color: 'white', fontSize: 20, fontWeight: 700,
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border)', borderRadius: 10,
+              width: 36, height: 36,
+              color: 'var(--text-primary)',
               cursor: 'pointer', flexShrink: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'transform 0.1s, box-shadow 0.1s',
-              boxShadow: '0 2px 12px rgba(255,107,53,0.35)',
+              transition: 'background 0.2s',
             }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.1)'
-              ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 20px rgba(255,107,53,0.5)'
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'
-              ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 2px 12px rgba(255,107,53,0.35)'
-            }}
-          >+</button>
+            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'var(--border)'}
+            onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'var(--bg-surface)'}
+          >
+            <Plus size={20} strokeWidth={2.5} />
+          </button>
         </div>
       </div>
 
@@ -160,9 +143,9 @@ export default function ItemCard({ item, language, currency, onSelect, onQuickAd
             src={item.image_url}
             alt={item.name_en}
             style={{
-              width: 88, height: 88, borderRadius: 14,
+              width: 96, height: 96, borderRadius: 'var(--radius-md)',
               objectFit: 'cover', display: 'block',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+              border: '1px solid var(--border)',
             }}
           />
         </div>
@@ -172,15 +155,14 @@ export default function ItemCard({ item, language, currency, onSelect, onQuickAd
       {!item.is_available && (
         <div style={{
           position: 'absolute', inset: 0,
-          background: 'rgba(8,8,16,0.82)',
+          background: 'rgba(255,255,255,0.7)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          borderRadius: 18,
-          backdropFilter: 'blur(2px)',
+          backdropFilter: 'blur(2px)', zIndex: 10,
         }}>
           <span style={{
-            color: 'var(--text-muted)', fontWeight: 700, fontSize: 13,
-            background: 'rgba(0,0,0,0.5)', borderRadius: 8, padding: '5px 14px',
-            border: '1px solid rgba(255,255,255,0.08)',
+            color: '#b91c1c', fontWeight: 700, fontSize: 13,
+            background: '#fef2f2', borderRadius: 8, padding: '6px 14px',
+            border: '1px solid #fca5a5',
           }}>
             {isArabic ? 'نفد المخزون' : 'Sold Out'}
           </span>

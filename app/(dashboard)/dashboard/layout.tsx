@@ -46,40 +46,33 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const currentPage = navItems.find(n => n.href === pathname || (n.href !== '/dashboard' && pathname.startsWith(n.href)))
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-base)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-surface)' }}>
 
       {/* ── SIDEBAR ── */}
       <aside style={{
-        width: 232,
-        flexShrink: 0,
-        background: 'var(--bg-sidebar)',
-        borderRight: '1px solid var(--border)',
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '20px 12px',
-        position: 'sticky',
-        top: 0,
-        height: '100vh',
-        zIndex: 30,
+        width: 260, flexShrink: 0,
+        background: 'var(--bg-sidebar)', borderRight: '1px solid var(--border)',
+        display: 'flex', flexDirection: 'column',
+        padding: '24px 16px', position: 'sticky', top: 0, height: '100vh', zIndex: 30,
       }}>
 
         {/* Logo */}
-        <Link href="/dashboard" style={{ textDecoration: 'none', marginBottom: 28 }}>
+        <Link href="/dashboard" style={{ textDecoration: 'none', marginBottom: 32 }}>
           <div style={{
-            display: 'flex', alignItems: 'center', gap: 10,
-            padding: '10px 12px', borderRadius: 14,
-            background: 'linear-gradient(135deg,rgba(255,107,53,0.12),rgba(247,201,72,0.06))',
-            border: '1px solid rgba(255,107,53,0.18)',
+            display: 'flex', alignItems: 'center', gap: 12,
+            padding: '12px 14px', borderRadius: 'var(--radius-md)',
+            background: 'var(--bg-surface)', border: '1px solid var(--border)',
           }}>
             <div style={{
-              width: 30, height: 30, borderRadius: 8,
-              background: 'linear-gradient(135deg,#ff6b35,#f7c948)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
-            }}>🍽️</div>
+              width: 32, height: 32, borderRadius: 8,
+              background: 'var(--brand-primary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'white', fontWeight: 800, fontSize: 16,
+            }}>M</div>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 800, color: '#f0f0ff', margin: 0, letterSpacing: '-0.3px' }}>MenuQR</p>
+              <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.3px' }}>MenuQR</p>
               {restaurantName && (
-                <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0, fontWeight: 500 }}>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0, fontWeight: 500 }}>
                   {restaurantName.length > 16 ? restaurantName.slice(0, 16) + '…' : restaurantName}
                 </p>
               )}
@@ -88,83 +81,64 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </Link>
 
         {/* Nav label */}
-        <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', color: 'var(--text-muted)', padding: '0 12px', marginBottom: 8 }}>
-          MENU
+        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', padding: '0 12px', marginBottom: 12, textTransform: 'uppercase' }}>
+          Menu
         </p>
 
         {/* Nav items */}
-        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
           {navItems.map(item => {
             const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
             return (
               <Link key={item.href} href={item.href} style={{ textDecoration: 'none' }}>
                 <div style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '9px 12px', borderRadius: 11,
-                  background: isActive ? 'rgba(255,107,53,0.1)' : 'transparent',
-                  color: isActive ? '#ff7a4a' : 'var(--text-secondary)',
-                  fontSize: 14, fontWeight: isActive ? 700 : 500,
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '10px 14px', borderRadius: 'var(--radius-md)',
+                  background: isActive ? 'var(--brand-primary-light)' : 'transparent',
+                  color: isActive ? 'var(--brand-primary)' : 'var(--text-secondary)',
+                  fontSize: 14, fontWeight: isActive ? 600 : 500,
                   transition: 'all 0.15s', cursor: 'pointer',
-                  position: 'relative',
                 }}>
-                  {isActive && (
-                    <div style={{
-                      position: 'absolute', left: 0, top: '20%', bottom: '20%',
-                      width: 3, borderRadius: 4,
-                      background: 'linear-gradient(180deg,#ff6b35,#f7c948)',
-                    }} />
-                  )}
-                  <item.icon size={16} strokeWidth={isActive ? 2.5 : 2} />
+                  <item.icon size={18} strokeWidth={isActive ? 2.5 : 2} />
                   {item.label}
-                  {isActive && <ChevronRight size={14} style={{ marginLeft: 'auto', opacity: 0.5 }} />}
+                  {isActive && <ChevronRight size={16} style={{ marginLeft: 'auto', opacity: 0.5 }} />}
                 </div>
               </Link>
             )
           })}
 
           {/* Divider */}
-          <div style={{ height: 1, background: 'var(--border)', margin: '10px 4px' }} />
+          <div style={{ height: 1, background: 'var(--border)', margin: '16px 8px' }} />
 
           {/* Kitchen Screen link */}
           {restaurantSlug && (
-            <a
-              href={`/kitchen/${restaurantSlug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ textDecoration: 'none' }}
-            >
+            <a href={`/kitchen/${restaurantSlug}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
               <div style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '9px 12px', borderRadius: 11,
-                background: 'rgba(34,197,94,0.07)',
-                border: '1px solid rgba(34,197,94,0.15)',
-                color: '#4ade80', fontSize: 14, fontWeight: 600,
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '10px 14px', borderRadius: 'var(--radius-md)',
+                background: '#f0fdf4', border: '1px solid #bbf7d0',
+                color: '#166534', fontSize: 14, fontWeight: 600,
                 transition: 'all 0.15s', cursor: 'pointer',
               }}>
-                <Monitor size={16} />
+                <Monitor size={18} />
                 Kitchen Display
-                <span style={{ marginLeft: 'auto', fontSize: 11, opacity: 0.7 }}>↗</span>
+                <span style={{ marginLeft: 'auto', fontSize: 14, opacity: 0.7 }}>↗</span>
               </div>
             </a>
           )}
         </nav>
 
         {/* Footer */}
-        <div style={{ marginTop: 8 }}>
+        <div style={{ marginTop: 12 }}>
           {restaurantSlug && (
-            <a
-              href={`/menu/${restaurantSlug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ textDecoration: 'none', display: 'block', marginBottom: 4 }}
-            >
+            <a href={`/menu/${restaurantSlug}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block', marginBottom: 4 }}>
               <div style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '9px 12px', borderRadius: 11,
-                color: 'var(--text-muted)', fontSize: 13, fontWeight: 500,
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '10px 14px', borderRadius: 'var(--radius-md)',
+                color: 'var(--text-secondary)', fontSize: 14, fontWeight: 500,
                 transition: 'all 0.15s', cursor: 'pointer',
               }}>
-                <span style={{ fontSize: 14 }}>📱</span>
+                <span style={{ fontSize: 16 }}>📱</span>
                 View Live Menu ↗
               </div>
             </a>
@@ -172,37 +146,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <button
             onClick={handleLogout}
             style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '9px 12px', borderRadius: 11,
+              display: 'flex', alignItems: 'center', gap: 12,
+              padding: '10px 14px', borderRadius: 'var(--radius-md)',
               background: 'transparent', border: 'none',
-              color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer',
-              width: '100%', transition: 'all 0.15s', fontFamily: 'Inter, sans-serif',
+              color: 'var(--text-secondary)', fontSize: 14, cursor: 'pointer',
+              width: '100%', transition: 'all 0.15s', fontWeight: 500, fontFamily: 'inherit',
             }}
           >
-            <LogOut size={15} />
+            <LogOut size={16} />
             Logout
           </button>
         </div>
       </aside>
 
       {/* ── MAIN CONTENT ── */}
-      <main style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
+      <main style={{ flex: 1, overflowY: 'auto', minWidth: 0, display: 'flex', flexDirection: 'column' }}>
         {/* Top bar */}
         <div style={{
-          height: 56, display: 'flex', alignItems: 'center',
-          padding: '0 28px', borderBottom: '1px solid var(--border)',
-          background: 'rgba(8,8,16,0.8)', backdropFilter: 'blur(12px)',
-          position: 'sticky', top: 0, zIndex: 20,
-          gap: 8,
+          height: 64, display: 'flex', alignItems: 'center',
+          padding: '0 32px', borderBottom: '1px solid var(--border)',
+          background: 'var(--bg-base)', position: 'sticky', top: 0, zIndex: 20,
+          gap: 10,
         }}>
-          <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>MenuQR</span>
-          <span style={{ color: 'var(--border)', fontSize: 13 }}>/</span>
-          <span style={{ color: 'var(--text-secondary)', fontSize: 13, fontWeight: 600 }}>
+          <span style={{ color: 'var(--text-muted)', fontSize: 14, fontWeight: 500 }}>MenuQR</span>
+          <span style={{ color: 'var(--border)', fontSize: 14 }}>/</span>
+          <span style={{ color: 'var(--text-primary)', fontSize: 14, fontWeight: 600 }}>
             {currentPage?.label || 'Dashboard'}
           </span>
         </div>
 
-        <div style={{ padding: '32px 28px', maxWidth: 1200 }}>
+        <div style={{ padding: '32px', maxWidth: 1200, flex: 1 }}>
           {children}
         </div>
       </main>
