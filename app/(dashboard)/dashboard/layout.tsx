@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { LayoutDashboard, UtensilsCrossed, QrCode, ShoppingBag, Settings, LogOut, ExternalLink } from 'lucide-react'
+import { LayoutDashboard, UtensilsCrossed, QrCode, ShoppingBag, Settings, LogOut, Monitor } from 'lucide-react'
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -17,6 +18,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const [restaurantSlug, setRestaurantSlug] = useState('')
+
+  useEffect(() => {
+    async function fetchSlug() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data } = await supabase
+        .from('restaurants')
+        .select('slug')
+        .eq('owner_user_id', user.id)
+        .single()
+      if (data?.slug) setRestaurantSlug(data.slug)
+    }
+    fetchSlug()
+  }, [supabase])
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -75,6 +91,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Link>
             )
           })}
+
+          {/* Kitchen Display external link */}
+          {restaurantSlug && (
+            <a
+              href={`/kitchen/${restaurantSlug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ textDecoration: 'none', marginTop: 4 }}
+            >
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '10px 12px', borderRadius: 10,
+                background: 'rgba(34,197,94,0.08)',
+                border: '1px solid rgba(34,197,94,0.2)',
+                color: '#4ade80',
+                fontSize: 14, fontWeight: 600,
+                transition: 'all 0.15s',
+                cursor: 'pointer',
+              }}>
+                <Monitor size={17} />
+                Kitchen Screen ↗
+              </div>
+            </a>
+          )}
         </nav>
 
         {/* Bottom actions */}

@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { CartItem, Restaurant, Language, OrderType } from '@/types'
-import { buildWhatsAppOrderURL } from '@/lib/whatsapp'
 
 interface OrderSummaryProps {
   cart: CartItem[]
@@ -28,58 +27,60 @@ export default function OrderSummary({
 }: OrderSummaryProps) {
   const [orderType, setOrderType] = useState<OrderType>(tableNumber ? 'dine_in' : 'takeaway')
   const [customerName, setCustomerName] = useState('')
-  const [ordered, setOrdered] = useState(false)
+  const [placing, setPlacing] = useState(false)
+  const [orderId, setOrderId] = useState<string | null>(null)
+  const [error, setError] = useState('')
 
-  async function handleWhatsAppOrder() {
-    const url = buildWhatsAppOrderURL({
-      restaurantWhatsApp: restaurant.whatsapp_number,
-      restaurantNameEn: restaurant.name_en,
-      restaurantNameAr: restaurant.name_ar || undefined,
-      tableNumber,
-      orderType,
-      items: cart,
-      subtotal,
-      vatAmount,
-      vatPercentage: vatRate,
-      total,
-      customerName: customerName || undefined,
-      language,
-    })
+  const isRTL = language === 'ar'
 
-    // Log order
-    const orderItems = cart.map(ci => ({
-      name: ci.menuItem.name_en,
-      name_hi: ci.menuItem.name_hi,
-      quantity: ci.quantity,
-      price: ci.totalPrice,
-      options: Object.values(ci.selectedOptions).map(o => o.label),
-      notes: ci.notes,
-    }))
+  async function handlePlaceOrder() {
+    setPlacing(true)
+    setError('')
+    try {
+      const orderItems = cart.map(ci => ({
+        name: ci.menuItem.name_en,
+        name_ar: ci.menuItem.name_ar,
+        quantity: ci.quantity,
+        price: ci.totalPrice,
+        unitPrice: ci.menuItem.price,
+        options: Object.values(ci.selectedOptions).map(o => o.label),
+        notes: ci.notes,
+      }))
 
-    fetch('/api/orders/log', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        restaurantId: restaurant.id,
-        tableNumber,
-        orderType,
-        orderSummary: cart.map(ci => `${ci.quantity}x ${ci.menuItem.name_en}`).join(', '),
-        orderItems,
-        subtotal,
-        gstAmount: vatAmount,
-        total,
-        customerName: customerName || null,
-        source: tableNumber ? 'qr' : 'link',
-        language,
-      }),
-    }).catch(() => {})
+      const res = await fetch('/api/orders/place', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          restaurantId: restaurant.id,
+          tableNumber: tableNumber || null,
+          customerName: customerName.trim() || null,
+          orderType,
+          orderItems,
+          orderSummary: cart.map(ci => `${ci.quantity}× ${ci.menuItem.name_en}`).join(', '),
+          subtotal,
+          taxAmount: vatAmount,
+          total,
+          source: tableNumber ? 'qr' : 'link',
+          language,
+        }),
+      })
 
-    setOrdered(true)
-    window.open(url, '_blank')
-    setTimeout(() => { onClearCart() }, 3000)
+      const data = await res.json()
+      if (data.success) {
+        setOrderId(data.orderId)
+        setTimeout(() => onClearCart(), 5000)
+      } else {
+        setError(data.error || 'Failed to place order. Please try again.')
+      }
+    } catch {
+      setError('Network error. Please check your connection.')
+    } finally {
+      setPlacing(false)
+    }
   }
 
-  if (ordered) {
+  // ── Order confirmed screen ──────────────────────────────────
+  if (orderId) {
     return (
       <div style={{
         position: 'fixed', inset: 0, zIndex: 50,
@@ -88,23 +89,80 @@ export default function OrderSummary({
         padding: 24,
       }}>
         <div className="animate-bounce-in" style={{
-          background: '#1a1a24', borderRadius: 20, border: '1px solid #2a2a3a',
-          padding: 40, textAlign: 'center', maxWidth: 360, width: '100%',
+          background: 'linear-gradient(135deg, #1a1a24, #0f0f13)',
+          borderRadius: 24,
+          border: '1px solid #2a2a3a',
+          padding: '40px 32px',
+          textAlign: 'center',
+          maxWidth: 360,
+          width: '100%',
         }}>
-          <div style={{ fontSize: 64, marginBottom: 16 }}>✅</div>
-          <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>{t.menu.orderSentTitle}</h2>
-          <p style={{ color: '#9999b0', lineHeight: 1.6 }}>{t.menu.orderSentBody}</p>
+          {/* Pulsing success ring */}
+          <div style={{ position: 'relative', display: 'inline-flex', marginBottom: 20 }}>
+            <div style={{
+              width: 88, height: 88, borderRadius: '50%',
+              background: 'rgba(34,197,94,0.12)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              animation: 'pulse 2s infinite',
+            }}>
+              <div style={{
+                width: 72, height: 72, borderRadius: '50%',
+                background: 'rgba(34,197,94,0.18)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 36,
+              }}>✅</div>
+            </div>
+          </div>
+
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#f4f4f6', marginBottom: 8, letterSpacing: '-0.3px' }}>
+            Order Placed! 🎉
+          </h2>
+          <p style={{ color: '#9999b0', lineHeight: 1.6, marginBottom: 20, fontSize: 15 }}>
+            {tableNumber
+              ? `Your order for Table ${tableNumber} has been sent to the kitchen!`
+              : 'Your order has been sent! Staff will confirm shortly.'}
+          </p>
+
+          {tableNumber && (
+            <div style={{
+              background: 'rgba(34,197,94,0.08)',
+              border: '1px solid rgba(34,197,94,0.2)',
+              borderRadius: 12,
+              padding: '12px 20px',
+              marginBottom: 20,
+            }}>
+              <p style={{ color: '#4ade80', fontSize: 13, fontWeight: 600, margin: 0 }}>
+                🍳 Kitchen is preparing your order
+              </p>
+            </div>
+          )}
+
+          <div style={{
+            background: '#0f0f13', borderRadius: 10,
+            padding: '10px 16px', marginBottom: 4,
+          }}>
+            <p style={{ color: '#55556a', fontSize: 12, margin: 0 }}>
+              Order ID: <span style={{ color: '#9999b0', fontFamily: 'monospace' }}>#{orderId.slice(-8).toUpperCase()}</span>
+            </p>
+          </div>
+          <p style={{ color: '#55556a', fontSize: 12, margin: 0, marginTop: 8 }}>
+            Screen closes automatically in a few seconds…
+          </p>
         </div>
       </div>
     )
   }
 
+  // ── Order summary sheet ────────────────────────────────────
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 50,
-      background: 'rgba(0,0,0,0.7)',
-      display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-    }}>
+    <div
+      dir={isRTL ? 'rtl' : 'ltr'}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 50,
+        background: 'rgba(0,0,0,0.7)',
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+      }}
+    >
       <div
         className="animate-slide-up"
         style={{
@@ -139,8 +197,10 @@ export default function OrderSummary({
           {/* Cart items */}
           <div style={{ marginBottom: 20 }}>
             {cart.map((ci, index) => {
-              const name = language === 'hi' && ci.menuItem.name_hi ? ci.menuItem.name_hi : ci.menuItem.name_en
-              const opts = Object.values(ci.selectedOptions).map(o => language === 'hi' && o.label_hi ? o.label_hi : o.label).join(', ')
+              const name = language === 'ar' && ci.menuItem.name_ar ? ci.menuItem.name_ar : ci.menuItem.name_en
+              const opts = Object.values(ci.selectedOptions).map(o =>
+                language === 'ar' && o.label_ar ? o.label_ar : o.label
+              ).join(', ')
               return (
                 <div key={index} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -150,10 +210,7 @@ export default function OrderSummary({
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       {ci.menuItem.is_veg ? <div className="veg-dot" /> : <div className="nonveg-dot" />}
-                      <span style={{
-                        fontSize: 14, fontWeight: 600, color: '#f4f4f6',
-                        fontFamily: language === 'hi' ? 'Noto Sans Devanagari, sans-serif' : 'Inter, sans-serif',
-                      }}>{name}</span>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: '#f4f4f6' }}>{name}</span>
                     </div>
                     {opts && <p style={{ fontSize: 12, color: '#9999b0', margin: '2px 0 0 20px' }}>{opts}</p>}
                     {ci.notes && <p style={{ fontSize: 12, color: '#55556a', margin: '2px 0 0 20px' }}>Note: {ci.notes}</p>}
@@ -237,31 +294,78 @@ export default function OrderSummary({
             </div>
           </div>
 
-          {/* Customer name */}
+          {/* Optional customer name */}
           <div style={{ marginBottom: 24 }}>
+            <label style={{ fontSize: 13, fontWeight: 600, color: '#9999b0', display: 'block', marginBottom: 8 }}>
+              Your Name <span style={{ color: '#55556a', fontWeight: 400 }}>(optional)</span>
+            </label>
             <input
               id="customer-name-input"
               type="text"
               value={customerName}
               onChange={e => setCustomerName(e.target.value)}
-              placeholder={t.menu.yourName}
+              placeholder="e.g. Raj, Table 5 guest..."
               className="input-base"
+              maxLength={50}
             />
           </div>
 
-          {/* WhatsApp button */}
+          {/* Error */}
+          {error && (
+            <div style={{
+              background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
+              borderRadius: 10, padding: '10px 14px', marginBottom: 16,
+            }}>
+              <p style={{ color: '#f87171', fontSize: 13, margin: 0 }}>⚠️ {error}</p>
+            </div>
+          )}
+
+          {/* Place Order button */}
           <button
-            id="whatsapp-order-btn"
-            onClick={handleWhatsAppOrder}
-            className="btn-whatsapp whatsapp-btn-pulse"
+            id="place-order-btn"
+            onClick={handlePlaceOrder}
+            disabled={placing}
+            style={{
+              width: '100%',
+              background: placing
+                ? 'rgba(255,107,53,0.4)'
+                : 'linear-gradient(135deg, #ff6b35, #e85520)',
+              border: 'none',
+              borderRadius: 14,
+              padding: '16px 20px',
+              color: 'white',
+              fontSize: 17,
+              fontWeight: 700,
+              cursor: placing ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+              transition: 'all 0.2s',
+              letterSpacing: '-0.2px',
+            }}
           >
-            <span style={{ fontSize: 22 }}>💬</span>
-            <span>{t.menu.orderViaWhatsapp}</span>
+            {placing ? (
+              <>
+                <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⏳</span>
+                Placing Order…
+              </>
+            ) : (
+              <>
+                <span style={{ fontSize: 20 }}>🍽️</span>
+                Place Order
+                <span style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  borderRadius: 6, padding: '2px 8px', fontSize: 14,
+                }}>
+                  {currency} {total.toFixed(2)}
+                </span>
+              </>
+            )}
           </button>
 
           <p style={{ textAlign: 'center', fontSize: 12, color: '#55556a', marginTop: 12, lineHeight: 1.5 }}>
-            WhatsApp will open with your order pre-filled.
-            Just tap Send to place your order.
+            🔒 No phone number required • Order goes directly to the kitchen
           </p>
         </div>
       </div>

@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   return {
     title: `Menu — ${slug.replace(/-/g, ' ')} | MenuQR.in`,
-    description: 'View menu and order via WhatsApp',
+    description: 'View menu and place your order directly',
   }
 }
 

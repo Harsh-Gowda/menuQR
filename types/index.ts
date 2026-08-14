@@ -132,3 +132,23 @@ export interface CartItem {
 
 export type Language = 'en' | 'ar' | 'hi'
 export type OrderType = 'dine_in' | 'takeaway' | 'delivery'
+export type OrderStatus = 'new' | 'preparing' | 'ready' | 'done'
+
+export interface Order {
+  id: string
+  restaurant_id: string
+  table_number: string | null
+  customer_name: string | null
+  order_type: OrderType
+  order_items: Json
+  order_summary: string
+  subtotal: number
+  tax_amount: number
+  total_amount: number
+  status: OrderStatus
+  notes: string | null
+  source: string
+  language: string
+  created_at: string
+  updated_at: string
+}
