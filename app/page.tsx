@@ -128,7 +128,7 @@ export default function HomePage() {
           <div style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
             <Link href="/signup" style={{ textDecoration: 'none' }}>
               <button className="btn-primary" style={{ padding: '16px 36px', fontSize: 15, textTransform: 'uppercase', letterSpacing: '1px', boxShadow: '0 8px 24px rgba(225,29,72,0.35)' }}>
-                Start Now — ₹499/mo
+                Start Now — ₹299/mo
               </button>
             </Link>
             <Link href="/menu/spice-garden" target="_blank" style={{ textDecoration: 'none' }}>
@@ -159,7 +159,7 @@ export default function HomePage() {
             <div style={{ width: 1, height: 32, background: 'var(--border)' }} />
             <div>
               <p style={{ fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Zero Commission</p>
-              <p style={{ fontSize: 18, fontWeight: 700 }}>Flat ₹499/mo</p>
+              <p style={{ fontSize: 18, fontWeight: 700 }}>Flat ₹299/mo</p>
             </div>
           </div>
         </div>
@@ -355,7 +355,7 @@ export default function HomePage() {
             </p>
 
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 12 }}>
-              <span style={{ fontSize: 80, fontWeight: 900, letterSpacing: '-0.05em', color: 'var(--text-primary)', lineHeight: 1 }}>₹499</span>
+              <span style={{ fontSize: 80, fontWeight: 900, letterSpacing: '-0.05em', color: 'var(--text-primary)', lineHeight: 1 }}>₹299</span>
               <span style={{ fontSize: 20, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>/ month</span>
             </div>
 
@@ -368,7 +368,7 @@ export default function HomePage() {
 
             <Link href="/signup" style={{ textDecoration: 'none', display: 'block' }}>
               <button className="btn-primary" style={{ padding: '18px 40px', fontSize: 16, textTransform: 'uppercase', letterSpacing: '1px', width: '100%', maxWidth: 300, boxShadow: '0 10px 30px rgba(225, 29, 72, 0.3)' }}>
-                Get Started — ₹499
+                Get Started — ₹299
               </button>
             </Link>
           </div>
