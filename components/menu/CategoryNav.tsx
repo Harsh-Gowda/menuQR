@@ -27,7 +27,7 @@ export default function CategoryNav({ categories, items, activeCategory, languag
   return (
     <div style={{
       background: 'rgba(255, 255, 255, 0.95)',
-      backdropFilter: 'blur(12px)',
+      backdropFilter: 'blur(16px)',
       borderBottom: '1px solid var(--border)',
     }}>
       <div
@@ -35,7 +35,7 @@ export default function CategoryNav({ categories, items, activeCategory, languag
         className="hide-scrollbar"
         style={{
           display: 'flex', overflowX: 'auto',
-          gap: 6, padding: '12px 16px',
+          padding: '0 16px',
         }}
       >
         {categories.map(cat => {
@@ -51,24 +51,25 @@ export default function CategoryNav({ categories, items, activeCategory, languag
               onClick={() => onSelect(cat.id)}
               style={{
                 flexShrink: 0,
-                padding: '8px 16px',
-                borderRadius: 100,
+                padding: '16px 20px',
                 border: 'none',
-                background: isActive
-                  ? 'var(--text-primary)'
-                  : 'var(--bg-surface)',
-                color: isActive ? 'white' : 'var(--text-secondary)',
+                background: 'transparent',
+                color: isActive ? 'var(--brand-primary)' : 'var(--text-secondary)',
                 fontSize: 14,
-                fontWeight: isActive ? 600 : 500,
+                fontWeight: isActive ? 800 : 600,
                 cursor: 'pointer',
-                transition: 'all 0.15s',
+                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
                 whiteSpace: 'nowrap',
-                fontFamily: language === 'ar'
-                  ? "'Cairo', 'Noto Sans Arabic', sans-serif"
-                  : 'inherit',
+                position: 'relative',
               }}
             >
               {name}
+              {isActive && (
+                <div style={{
+                  position: 'absolute', bottom: 0, left: '10%', right: '10%', height: 3,
+                  background: 'var(--brand-primary)', borderRadius: '3px 3px 0 0'
+                }} />
+              )}
             </button>
           )
         })}

@@ -1,7 +1,9 @@
 'use client'
 
+import { CartItem, Restaurant, Language } from '@/types'
 import { useState } from 'react'
-import { CartItem, Restaurant, Language, OrderType } from '@/types'
+import { Plus, Minus, X, Info } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 interface OrderSummaryProps {
   cart: CartItem[]
@@ -23,351 +25,158 @@ interface OrderSummaryProps {
 export default function OrderSummary({
   cart, restaurant, tableNumber, language, t, currency,
   subtotal, vatAmount, vatRate, total,
-  onClose, onUpdateQty, onRemove, onClearCart,
+  onClose, onUpdateQty, onRemove, onClearCart
 }: OrderSummaryProps) {
-  const [orderType, setOrderType] = useState<OrderType>(tableNumber ? 'dine_in' : 'takeaway')
-  const [customerName, setCustomerName] = useState('')
-  const [placing, setPlacing] = useState(false)
-  const [orderId, setOrderId] = useState<string | null>(null)
-  const [error, setError] = useState('')
-
   const isRTL = language === 'ar'
+  const [customerName, setCustomerName] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+  const router = useRouter()
 
   async function handlePlaceOrder() {
-    setPlacing(true)
+    if (cart.length === 0) return
+    setSubmitting(true)
     setError('')
-    try {
-      const orderItems = cart.map(ci => ({
-        name: ci.menuItem.name_en,
-        name_ar: ci.menuItem.name_ar,
-        quantity: ci.quantity,
-        price: ci.totalPrice,
-        unitPrice: ci.menuItem.price,
-        options: Object.values(ci.selectedOptions).map(o => o.label),
-        notes: ci.notes,
-      }))
 
-      const res = await fetch('/api/orders/place', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          restaurantId: restaurant.id,
-          tableNumber: tableNumber || null,
-          customerName: customerName.trim() || null,
-          orderType,
-          orderItems,
-          orderSummary: cart.map(ci => `${ci.quantity}× ${ci.menuItem.name_en}`).join(', '),
-          subtotal,
-          taxAmount: vatAmount,
-          total,
-          source: tableNumber ? 'qr' : 'link',
-          language,
-        }),
+    const res = await fetch('/api/orders/place', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        restaurantId: restaurant.id,
+        tableNumber: tableNumber || 'Takeaway',
+        customerName: customerName || null,
+        items: cart,
+        subtotal,
+        vatAmount,
+        total,
       })
-
-      const data = await res.json()
-      if (data.success) {
-        setOrderId(data.orderId)
-        setTimeout(() => onClearCart(), 5000)
-      } else {
-        setError(data.error || 'Failed to place order. Please try again.')
-      }
-    } catch {
-      setError('Network error. Please check your connection.')
-    } finally {
-      setPlacing(false)
+    })
+    
+    const data = await res.json()
+    if (!res.ok || !data.success) {
+      setError(data.error || 'Failed to place order')
+      setSubmitting(false)
+      return
     }
+
+    onClearCart()
+    router.push(`/menu/${restaurant.slug}/${tableNumber || ''}?order_success=true`)
   }
 
-  // ── Order confirmed screen ──────────────────────────────────
-  if (orderId) {
-    return (
-      <div style={{
-        position: 'fixed', inset: 0, zIndex: 50,
-        background: 'rgba(0,0,0,0.85)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: 24,
-      }}>
-        <div className="animate-bounce-in" style={{
-          background: 'linear-gradient(135deg, #1a1a24, #0f0f13)',
-          borderRadius: 24,
-          border: '1px solid #2a2a3a',
-          padding: '40px 32px',
-          textAlign: 'center',
-          maxWidth: 360,
-          width: '100%',
-        }}>
-          {/* Pulsing success ring */}
-          <div style={{ position: 'relative', display: 'inline-flex', marginBottom: 20 }}>
-            <div style={{
-              width: 88, height: 88, borderRadius: '50%',
-              background: 'rgba(34,197,94,0.12)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              animation: 'pulse 2s infinite',
-            }}>
-              <div style={{
-                width: 72, height: 72, borderRadius: '50%',
-                background: 'rgba(34,197,94,0.18)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 36,
-              }}>✅</div>
-            </div>
-          </div>
-
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#f4f4f6', marginBottom: 8, letterSpacing: '-0.3px' }}>
-            Order Placed! 🎉
-          </h2>
-          <p style={{ color: '#9999b0', lineHeight: 1.6, marginBottom: 20, fontSize: 15 }}>
-            {tableNumber
-              ? `Your order for Table ${tableNumber} has been sent to the kitchen!`
-              : 'Your order has been sent! Staff will confirm shortly.'}
-          </p>
-
-          {tableNumber && (
-            <div style={{
-              background: 'rgba(34,197,94,0.08)',
-              border: '1px solid rgba(34,197,94,0.2)',
-              borderRadius: 12,
-              padding: '12px 20px',
-              marginBottom: 20,
-            }}>
-              <p style={{ color: '#4ade80', fontSize: 13, fontWeight: 600, margin: 0 }}>
-                🍳 Kitchen is preparing your order
-              </p>
-            </div>
-          )}
-
-          <div style={{
-            background: '#0f0f13', borderRadius: 10,
-            padding: '10px 16px', marginBottom: 4,
-          }}>
-            <p style={{ color: '#55556a', fontSize: 12, margin: 0 }}>
-              Order ID: <span style={{ color: '#9999b0', fontFamily: 'monospace' }}>#{orderId.slice(-8).toUpperCase()}</span>
-            </p>
-          </div>
-          <p style={{ color: '#55556a', fontSize: 12, margin: 0, marginTop: 8 }}>
-            Screen closes automatically in a few seconds…
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  // ── Order summary sheet ────────────────────────────────────
   return (
-    <div
-      dir={isRTL ? 'rtl' : 'ltr'}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 50,
-        background: 'rgba(0,0,0,0.7)',
-        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-      }}
-    >
-      <div
-        className="animate-slide-up"
-        style={{
-          width: '100%', maxWidth: 480,
-          background: '#1a1a24',
-          borderRadius: '20px 20px 0 0',
-          border: '1px solid #2a2a3a',
-          maxHeight: '92vh', overflowY: 'auto',
-        }}
-      >
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 100,
+      background: 'rgba(0,0,0,0.4)',
+      display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
+    }}>
+      <div className="animate-slide-up" style={{
+        background: 'var(--bg-base)', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+        maxHeight: '90vh', display: 'flex', flexDirection: 'column',
+        boxShadow: '0 -10px 40px rgba(0,0,0,0.1)',
+      }}>
+        
         {/* Header */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '18px 20px',
-          borderBottom: '1px solid #2a2a3a',
-          position: 'sticky', top: 0, background: '#1a1a24', zIndex: 1,
-        }}>
-          <div>
-            <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{t.menu.yourOrder}</h2>
-            {tableNumber && (
-              <p style={{ fontSize: 13, color: '#9999b0', margin: '2px 0 0' }}>
-                {t.menu.table} {tableNumber}
-              </p>
-            )}
-          </div>
-          <button onClick={onClose} className="btn-ghost" style={{ padding: '6px 12px', fontSize: 14 }}>
-            ✕
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: '1px solid var(--border)' }}>
+          <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>{t.cart.title}</h2>
+          <button onClick={onClose} style={{ background: 'var(--bg-surface)', border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+            <X size={20} />
           </button>
         </div>
 
-        <div style={{ padding: '16px 20px 24px' }}>
-          {/* Cart items */}
-          <div style={{ marginBottom: 20 }}>
-            {cart.map((ci, index) => {
-              const name = language === 'ar' && ci.menuItem.name_ar ? ci.menuItem.name_ar : ci.menuItem.name_en
-              const opts = Object.values(ci.selectedOptions).map(o =>
-                language === 'ar' && o.label_ar ? o.label_ar : o.label
-              ).join(', ')
-              return (
-                <div key={index} style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '12px 0',
-                  borderBottom: '1px solid #2a2a3a',
-                }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      {ci.menuItem.is_veg ? <div className="veg-dot" /> : <div className="nonveg-dot" />}
-                      <span style={{ fontSize: 14, fontWeight: 600, color: '#f4f4f6' }}>{name}</span>
-                    </div>
-                    {opts && <p style={{ fontSize: 12, color: '#9999b0', margin: '2px 0 0 20px' }}>{opts}</p>}
-                    {ci.notes && <p style={{ fontSize: 12, color: '#55556a', margin: '2px 0 0 20px' }}>Note: {ci.notes}</p>}
+        {/* Content */}
+        <div style={{ padding: 24, overflowY: 'auto', flex: 1 }}>
+          {error && (
+            <div style={{ background: '#FEF2F2', color: '#B91C1C', padding: 12, borderRadius: 'var(--radius-md)', marginBottom: 20, fontSize: 14, fontWeight: 600 }}>
+              {error}
+            </div>
+          )}
+
+          {cart.map((item, idx) => {
+            const name = isRTL && item.menuItem.name_ar ? item.menuItem.name_ar : item.menuItem.name_en
+            return (
+              <div key={idx} style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
+                <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--bg-surface)', overflow: 'hidden', flexShrink: 0 }}>
+                  {item.menuItem.image_url ? (
+                    <img src={item.menuItem.image_url} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>🍽️</div>
+                  )}
+                </div>
+                
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <h4 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>{name}</h4>
+                    <span style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: 16 }}>{currency} {item.totalPrice}</span>
                   </div>
-                  {/* Qty controls */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  
+                  {/* Stepper (Like mobile image) */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 12 }}>
                     <div style={{
-                      display: 'flex', alignItems: 'center',
-                      background: '#0f0f13', borderRadius: 8, border: '1px solid #2a2a3a',
+                      display: 'flex', alignItems: 'center', background: 'var(--brand-primary)', color: 'white',
+                      borderRadius: 'var(--radius-pill)', padding: '4px 12px', gap: 16
                     }}>
-                      <button
-                        onClick={() => onUpdateQty(index, ci.quantity - 1)}
-                        style={{ width: 30, height: 30, background: 'transparent', border: 'none', color: '#9999b0', cursor: 'pointer', fontSize: 16 }}
-                      >−</button>
-                      <span style={{ minWidth: 22, textAlign: 'center', fontSize: 14, fontWeight: 700, color: '#f4f4f6' }}>{ci.quantity}</span>
-                      <button
-                        onClick={() => onUpdateQty(index, ci.quantity + 1)}
-                        style={{ width: 30, height: 30, background: 'transparent', border: 'none', color: '#f4f4f6', cursor: 'pointer', fontSize: 16 }}
-                      >+</button>
+                      <button onClick={() => onUpdateQty(idx, item.quantity - 1)} style={{ background: 'transparent', border: 'none', color: 'white', display: 'flex', alignItems: 'center', padding: 0, cursor: 'pointer' }}>
+                        <Minus size={14} strokeWidth={4} />
+                      </button>
+                      <span style={{ fontWeight: 800, fontSize: 14 }}>{item.quantity}</span>
+                      <button onClick={() => onUpdateQty(idx, item.quantity + 1)} style={{ background: 'transparent', border: 'none', color: 'white', display: 'flex', alignItems: 'center', padding: 0, cursor: 'pointer' }}>
+                        <Plus size={14} strokeWidth={4} />
+                      </button>
                     </div>
-                    <span style={{ minWidth: 64, textAlign: 'right', fontSize: 14, fontWeight: 700, color: '#f4f4f6' }}>
-                      {currency} {ci.totalPrice % 1 === 0 ? ci.totalPrice : ci.totalPrice.toFixed(2)}
-                    </span>
                   </div>
                 </div>
-              )
-            })}
-          </div>
-
-          {/* Totals */}
-          <div style={{
-            background: '#0f0f13', borderRadius: 12, padding: '14px 16px', marginBottom: 20,
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14, color: '#9999b0' }}>
-              <span>{t.menu.subtotal}</span>
-              <span>{currency} {subtotal.toFixed(2)}</span>
-            </div>
-            {vatAmount > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14, color: '#9999b0' }}>
-                <span>{t.menu.vat} ({vatRate}%)</span>
-                <span>{currency} {vatAmount.toFixed(2)}</span>
               </div>
-            )}
-            <div style={{
-              display: 'flex', justifyContent: 'space-between',
-              fontSize: 17, fontWeight: 700, color: '#f4f4f6',
-              borderTop: '1px solid #2a2a3a', paddingTop: 10, marginTop: 4,
-            }}>
-              <span>{t.menu.total}</span>
-              <span className="gradient-text">{currency} {total.toFixed(2)}</span>
-            </div>
-          </div>
+            )
+          })}
+        </div>
 
-          {/* Order type */}
-          <div style={{ marginBottom: 20 }}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
-              {t.menu.selectOrderType}
-            </p>
-            <div style={{ display: 'flex', gap: 8 }}>
-              {([
-                { type: 'dine_in' as OrderType, label: t.menu.dineIn, emoji: '🪑' },
-                { type: 'takeaway' as OrderType, label: t.menu.takeaway, emoji: '🛍️' },
-                { type: 'delivery' as OrderType, label: t.menu.delivery, emoji: '🛵' },
-              ]).map(ot => (
-                <button
-                  key={ot.type}
-                  onClick={() => setOrderType(ot.type)}
-                  style={{
-                    flex: 1, padding: '10px 4px',
-                    background: orderType === ot.type ? 'rgba(255,107,53,0.1)' : 'rgba(255,255,255,0.03)',
-                    border: `1.5px solid ${orderType === ot.type ? '#ff6b35' : '#2a2a3a'}`,
-                    borderRadius: 10, color: orderType === ot.type ? '#ff6b35' : '#9999b0',
-                    fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                  }}
-                >
-                  <span style={{ fontSize: 18 }}>{ot.emoji}</span>
-                  {ot.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Optional customer name */}
-          <div style={{ marginBottom: 24 }}>
-            <label style={{ fontSize: 13, fontWeight: 600, color: '#9999b0', display: 'block', marginBottom: 8 }}>
-              Your Name <span style={{ color: '#55556a', fontWeight: 400 }}>(optional)</span>
+        {/* Footer Checkout */}
+        <div style={{ padding: '24px', background: 'var(--bg-card)', borderTop: '1px solid var(--border)' }}>
+          
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 8, textTransform: 'uppercase' }}>
+              Your Name (Optional)
             </label>
             <input
-              id="customer-name-input"
               type="text"
               value={customerName}
               onChange={e => setCustomerName(e.target.value)}
-              placeholder="e.g. Raj, Table 5 guest..."
+              placeholder="e.g. John Doe"
               className="input-base"
-              maxLength={50}
             />
           </div>
 
-          {/* Error */}
-          {error && (
-            <div style={{
-              background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
-              borderRadius: 10, padding: '10px 14px', marginBottom: 16,
-            }}>
-              <p style={{ color: '#f87171', fontSize: 13, margin: 0 }}>⚠️ {error}</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 15, color: 'var(--text-secondary)' }}>
+            <span>{t.cart.subtotal}</span>
+            <span>{currency} {subtotal}</span>
+          </div>
+          
+          {vatAmount > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 15, color: 'var(--text-secondary)' }}>
+              <span>VAT ({vatRate}%)</span>
+              <span>{currency} {vatAmount.toFixed(2)}</span>
             </div>
           )}
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24, fontSize: 20, fontWeight: 800, color: 'var(--text-primary)' }}>
+            <span>{t.cart.total}</span>
+            <span>{currency} {total % 1 === 0 ? total : total.toFixed(2)}</span>
+          </div>
 
-          {/* Place Order button */}
           <button
-            id="place-order-btn"
             onClick={handlePlaceOrder}
-            disabled={placing}
+            disabled={submitting}
             style={{
-              width: '100%',
-              background: placing
-                ? 'rgba(255,107,53,0.4)'
-                : 'linear-gradient(135deg, #ff6b35, #e85520)',
-              border: 'none',
-              borderRadius: 14,
-              padding: '16px 20px',
-              color: 'white',
-              fontSize: 17,
-              fontWeight: 700,
-              cursor: placing ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 10,
-              transition: 'all 0.2s',
-              letterSpacing: '-0.2px',
+              width: '100%', background: 'var(--brand-primary)', color: 'white',
+              border: 'none', borderRadius: 'var(--radius-pill)', padding: '16px',
+              fontSize: 16, fontWeight: 800, cursor: 'pointer',
+              opacity: submitting ? 0.7 : 1, transition: 'all 0.2s',
             }}
           >
-            {placing ? (
-              <>
-                <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⏳</span>
-                Placing Order…
-              </>
-            ) : (
-              <>
-                <span style={{ fontSize: 20 }}>🍽️</span>
-                Place Order
-                <span style={{
-                  background: 'rgba(255,255,255,0.2)',
-                  borderRadius: 6, padding: '2px 8px', fontSize: 14,
-                }}>
-                  {currency} {total.toFixed(2)}
-                </span>
-              </>
-            )}
+            {submitting ? 'Placing Order...' : t.cart.checkout}
           </button>
-
-          <p style={{ textAlign: 'center', fontSize: 12, color: '#55556a', marginTop: 12, lineHeight: 1.5 }}>
-            🔒 No phone number required • Order goes directly to the kitchen
-          </p>
         </div>
+        
       </div>
     </div>
   )

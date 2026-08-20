@@ -31,45 +31,48 @@ export default function LoginPage() {
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'var(--bg-surface)', padding: 24,
+      background: 'var(--bg-base)', padding: 24, position: 'relative'
     }}>
-      <div style={{ width: '100%', maxWidth: 420 }}>
+      {/* Background Glow */}
+      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 500, height: 500, background: 'radial-gradient(circle, rgba(225, 29, 72, 0.08) 0%, rgba(17,17,17,0) 70%)', zIndex: 0 }} />
+
+      <div style={{ width: '100%', maxWidth: 440, position: 'relative', zIndex: 1 }}>
         {/* Logo */}
-        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 32 }}>
+        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 40 }}>
           <div style={{
-            width: 40, height: 40, borderRadius: 10,
+            width: 44, height: 44, borderRadius: '50%',
             background: 'var(--brand-primary)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'white', fontWeight: 800, fontSize: 20,
-          }}>M</div>
-          <span style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
+            color: 'white', fontWeight: 900, fontSize: 22,
+          }}>🍽️</div>
+          <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '1px', textTransform: 'uppercase' }}>
             MenuQR
           </span>
         </Link>
 
         {/* Card */}
-        <div className="card" style={{ padding: '40px 32px' }}>
-          <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.5px', marginBottom: 8, color: 'var(--text-primary)', textAlign: 'center' }}>
-            Welcome back
+        <div className="card animate-scale-in" style={{ padding: '48px 40px', background: 'var(--bg-surface)' }}>
+          <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.02em', marginBottom: 12, color: 'var(--text-primary)', textAlign: 'center' }}>
+            Welcome Back
           </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 15, marginBottom: 32, textAlign: 'center' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 15, marginBottom: 40, textAlign: 'center' }}>
             Sign in to manage your restaurant
           </p>
 
           {error && (
             <div style={{
-              background: '#fef2f2', border: '1px solid #f87171',
-              borderRadius: 8, padding: '12px 16px', marginBottom: 24,
+              background: 'rgba(225, 29, 72, 0.1)', border: '1px solid var(--brand-primary)',
+              borderRadius: 'var(--radius-md)', padding: '14px 16px', marginBottom: 24,
               display: 'flex', alignItems: 'center', gap: 10,
             }}>
-              <span style={{ color: '#ef4444' }}>⚠️</span>
-              <span style={{ color: '#b91c1c', fontSize: 14 }}>{error}</span>
+              <span style={{ color: 'var(--brand-primary)' }}>⚠️</span>
+              <span style={{ color: 'var(--text-primary)', fontSize: 14, fontWeight: 600 }}>{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             <div>
-              <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '1px' }}>
                 Email address
               </label>
               <input
@@ -80,16 +83,17 @@ export default function LoginPage() {
                 placeholder="you@restaurant.com"
                 required
                 className="input-base"
+                style={{ background: 'var(--bg-base)' }}
               />
             </div>
 
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <label style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>
                   Password
                 </label>
-                <Link href="#" style={{ fontSize: 13, color: 'var(--brand-primary)', textDecoration: 'none', fontWeight: 500 }}>
-                  Forgot password?
+                <Link href="#" style={{ fontSize: 12, color: 'var(--brand-primary)', textDecoration: 'none', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  Forgot?
                 </Link>
               </div>
               <input
@@ -99,6 +103,7 @@ export default function LoginPage() {
                 onChange={e => setPassword(e.target.value)}
                 required
                 className="input-base"
+                style={{ background: 'var(--bg-base)' }}
               />
             </div>
 
@@ -107,7 +112,7 @@ export default function LoginPage() {
               type="submit"
               disabled={loading}
               className="btn-primary"
-              style={{ marginTop: 8, fontSize: 16, width: '100%', opacity: loading ? 0.7 : 1 }}
+              style={{ marginTop: 8, width: '100%', opacity: loading ? 0.7 : 1, textTransform: 'uppercase', letterSpacing: '1px' }}
             >
               {loading ? (
                 <><span className="animate-spin" style={{ display: 'inline-block' }}>⏳</span> Signing in…</>
@@ -116,10 +121,10 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p style={{ textAlign: 'center', marginTop: 24, fontSize: 14, color: 'var(--text-secondary)' }}>
+        <p className="animate-slide-up" style={{ textAlign: 'center', marginTop: 32, fontSize: 14, color: 'var(--text-secondary)', animationDelay: '0.1s' }}>
           Don't have an account?{' '}
-          <Link href="/signup" style={{ color: 'var(--brand-primary)', fontWeight: 600, textDecoration: 'none' }}>
-            Start your free trial
+          <Link href="/signup" style={{ color: 'var(--brand-primary)', fontWeight: 700, textDecoration: 'none', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            Get Started
           </Link>
         </p>
       </div>

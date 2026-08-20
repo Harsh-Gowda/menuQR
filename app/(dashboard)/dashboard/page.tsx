@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Restaurant } from '@/types'
-import { Eye, ShoppingBag, TrendingUp, QrCode, PenLine, Pause, Play, ExternalLink, Monitor } from 'lucide-react'
+import { Eye, ShoppingBag, QrCode, PenLine, Pause, Play, ExternalLink } from 'lucide-react'
 
 export default function DashboardPage() {
   const supabase = createClient()
@@ -62,194 +62,155 @@ export default function DashboardPage() {
   const trialDaysLeft = restaurant
     ? Math.max(0, Math.ceil((new Date(restaurant.trial_ends_at).getTime() - Date.now()) / 86400000))
     : 0
-  const estSaved = (orders: number) => Math.round(orders * 350 * 0.25)
 
   if (loading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
         {[1, 2, 3].map(i => (
-          <div key={i} className="shimmer" style={{ height: 100, borderRadius: 'var(--radius-lg)' }} />
+          <div key={i} className="shimmer" style={{ height: 120, borderRadius: 'var(--radius-xl)' }} />
         ))}
       </div>
     )
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }} className="animate-slide-up">
 
       {/* ── Header ── */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyItems: 'space-between', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-            <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text-primary)', margin: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 }}>
+            <h1 style={{ fontSize: 'clamp(32px, 4vw, 48px)', fontWeight: 800, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
               {restaurant?.name_en || 'Dashboard'}
             </h1>
             {liveOrderCount > 0 && (
               <div style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                background: '#fef2f2', border: '1px solid #fca5a5',
-                borderRadius: 100, padding: '4px 12px',
+                display: 'flex', alignItems: 'center', gap: 8,
+                background: 'rgba(225, 29, 72, 0.15)', border: '1px solid var(--brand-primary)',
+                borderRadius: 100, padding: '6px 16px',
               }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', animation: 'pulse 1.5s infinite', display: 'inline-block' }} />
-                <span style={{ fontSize: 13, color: '#b91c1c', fontWeight: 600 }}>{liveOrderCount} live</span>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--brand-primary)', animation: 'pulse 1.5s infinite', display: 'inline-block' }} />
+                <span style={{ fontSize: 13, color: 'var(--brand-primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>{liveOrderCount} Live Orders</span>
               </div>
             )}
           </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 15, margin: 0 }}>
-            Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}! Here's your restaurant activity.
+          <p style={{ color: 'var(--text-secondary)', fontSize: 16, margin: 0, fontWeight: 400, letterSpacing: '0.5px' }}>
+            Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}! Let's check your restaurant performance.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: 12 }}>
-          {restaurant && (
-            <a href={menuUrl} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-              <button className="btn-secondary" style={{ fontSize: 14, padding: '10px 16px' }}>
-                <ExternalLink size={16} />
-                Live Menu
-              </button>
-            </a>
-          )}
-          {restaurant?.slug && (
-            <a href={`/kitchen/${restaurant.slug}`} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-              <button className="btn-secondary" style={{ fontSize: 14, padding: '10px 16px', color: '#166534', borderColor: '#bbf7d0', background: '#f0fdf4' }}>
-                <Monitor size={16} />
-                Kitchen Screen
-              </button>
-            </a>
-          )}
-        </div>
+        {restaurant && (
+          <a href={menuUrl} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+            <button className="btn-secondary" style={{ padding: '12px 24px', fontSize: 14, textTransform: 'uppercase', letterSpacing: '1px' }}>
+              View Live Menu <ExternalLink size={16} />
+            </button>
+          </a>
+        )}
       </div>
 
       {/* ── Trial Banner ── */}
       {restaurant && !restaurant.subscription_active && (
-        <div style={{
-          background: 'var(--brand-primary-light)',
-          border: '1px solid rgba(37,99,235,0.2)',
-          borderRadius: 'var(--radius-lg)', padding: '20px 24px',
-          display: 'flex', alignItems: 'center', justifyItems: 'space-between', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap',
+        <div className="card" style={{
+          background: 'linear-gradient(135deg, var(--brand-primary) 0%, #9F1239 100%)', color: 'white',
+          padding: '32px 40px', border: 'none',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap',
+          boxShadow: '0 20px 40px rgba(225, 29, 72, 0.2)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div style={{ fontSize: 24 }}>🚀</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+            <div style={{ fontSize: 40, background: 'rgba(255,255,255,0.2)', padding: 16, borderRadius: '50%' }}>🚀</div>
             <div>
-              <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--brand-primary)' }}>
+              <p style={{ margin: 0, fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em' }}>
                 {trialDaysLeft} days left in your free trial
               </p>
-              <p style={{ margin: '4px 0 0', fontSize: 14, color: 'var(--text-secondary)' }}>
-                Upgrade to keep all features running after your trial ends.
+              <p style={{ margin: '8px 0 0', fontSize: 15, fontWeight: 500, opacity: 0.9 }}>
+                Upgrade your account to keep taking orders without interruption.
               </p>
             </div>
           </div>
           <Link href="/dashboard/billing" style={{ textDecoration: 'none', flexShrink: 0 }}>
-            <button className="btn-primary" style={{ padding: '10px 20px', fontSize: 14 }}>
-              Upgrade — ₹499/mo
+            <button style={{
+              background: 'white', color: '#9F1239', border: 'none',
+              borderRadius: 100, padding: '16px 32px', fontWeight: 800, fontSize: 14, textTransform: 'uppercase', letterSpacing: '1px',
+              cursor: 'pointer', transition: 'transform 0.2s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              Upgrade Now
             </button>
           </Link>
         </div>
       )}
 
       {/* ── Stats grid ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 24 }}>
         {[
-          { label: 'Today\'s Views', value: todayViews, icon: Eye, color: 'var(--brand-primary)', bg: 'var(--brand-primary-light)', desc: 'Menu page opens' },
-          { label: 'Today\'s Orders', value: todayOrders, icon: ShoppingBag, color: '#ea580c', bg: '#ffedd5', desc: 'Orders placed' },
-          { label: 'Month Views', value: monthViews, icon: Eye, color: 'var(--brand-primary)', bg: 'var(--brand-primary-light)', desc: 'This calendar month' },
-          { label: 'Month Orders', value: monthOrders, icon: ShoppingBag, color: '#ea580c', bg: '#ffedd5', desc: 'This calendar month' },
+          { label: 'Today\'s Views', value: todayViews, icon: Eye, color: 'var(--brand-primary)', bg: 'var(--brand-primary-light)' },
+          { label: 'Today\'s Orders', value: todayOrders, icon: ShoppingBag, color: 'var(--brand-success)', bg: 'var(--brand-success-light)' },
+          { label: 'Month Views', value: monthViews, icon: Eye, color: 'var(--text-secondary)', bg: 'var(--border)' },
+          { label: 'Month Orders', value: monthOrders, icon: ShoppingBag, color: 'var(--brand-success)', bg: 'var(--brand-success-light)' },
         ].map((stat, i) => (
-          <div key={i} className="card" style={{ padding: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <span style={{ fontSize: 14, color: 'var(--text-secondary)', fontWeight: 600 }}>{stat.label}</span>
+          <div key={i} className="card" style={{ padding: '32px', background: 'var(--bg-surface)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
               <div style={{
-                width: 36, height: 36, borderRadius: 10,
+                width: 48, height: 48, borderRadius: 12,
                 background: stat.bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <stat.icon size={18} color={stat.color} />
+                <stat.icon size={24} color={stat.color} />
               </div>
+              <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>{stat.label}</span>
             </div>
-            <div style={{ fontSize: 40, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-1px', lineHeight: 1 }}>
+            <div style={{ fontSize: 48, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', lineHeight: 1 }}>
               {stat.value.toLocaleString('en-IN')}
             </div>
-            <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 8, margin: '8px 0 0' }}>{stat.desc}</p>
           </div>
         ))}
       </div>
 
-      {/* ── Savings + Commission saved ── */}
-      <div className="card" style={{
-        background: '#f0fdf4', border: '1px solid #bbf7d0',
-        padding: '24px 32px', display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap',
-      }}>
-        <div style={{
-          width: 56, height: 56, borderRadius: 16,
-          background: '#dcfce7', border: '1px solid #bbf7d0',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        }}>
-          <TrendingUp size={28} color="#166534" />
-        </div>
-        <div style={{ flex: 1 }}>
-          <p style={{ margin: 0, fontSize: 14, color: 'var(--text-secondary)', marginBottom: 8, fontWeight: 500 }}>
-            Estimated commission saved vs Swiggy/Zomato (25%)
-          </p>
-          <div style={{ display: 'flex', gap: 40, flexWrap: 'wrap' }}>
-            <div>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em' }}>TODAY</span>
-              <p style={{ fontSize: 28, fontWeight: 800, color: '#166534', margin: '4px 0 0', letterSpacing: '-0.5px' }}>
-                ₹{estSaved(todayOrders).toLocaleString('en-IN')}
-              </p>
-            </div>
-            <div>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em' }}>THIS MONTH</span>
-              <p style={{ fontSize: 28, fontWeight: 800, color: '#166534', margin: '4px 0 0', letterSpacing: '-0.5px' }}>
-                ₹{estSaved(monthOrders).toLocaleString('en-IN')}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* ── Quick Actions ── */}
       <div>
-        <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 16 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 24, textTransform: 'uppercase', letterSpacing: '1px' }}>
           Quick Actions
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: 24 }}>
 
           <Link href="/dashboard/menu" style={{ textDecoration: 'none' }}>
-            <div className="card" style={{ padding: '24px 20px', textAlign: 'center', cursor: 'pointer' }}>
-              <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--brand-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                <PenLine size={24} color="var(--brand-primary)" />
+            <div className="card" style={{ padding: '40px 24px', textAlign: 'center', cursor: 'pointer', background: 'var(--bg-surface)' }}>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', border: '1px solid var(--border)' }}>
+                <PenLine size={28} color="var(--text-primary)" />
               </div>
-              <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>Edit Menu</p>
-              <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>Items & categories</p>
+              <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Edit Menu</p>
+              <p style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>Update dishes & prices</p>
             </div>
           </Link>
 
           <Link href="/dashboard/tables" style={{ textDecoration: 'none' }}>
-            <div className="card" style={{ padding: '24px 20px', textAlign: 'center', cursor: 'pointer' }}>
-              <div style={{ width: 48, height: 48, borderRadius: 12, background: '#f3e8ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                <QrCode size={24} color="#9333ea" />
+            <div className="card" style={{ padding: '40px 24px', textAlign: 'center', cursor: 'pointer', background: 'var(--bg-surface)' }}>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', border: '1px solid var(--border)' }}>
+                <QrCode size={28} color="var(--text-primary)" />
               </div>
-              <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>QR Codes</p>
-              <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>Download & print</p>
+              <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '1px' }}>QR Codes</p>
+              <p style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>Download for tables</p>
             </div>
           </Link>
 
           <Link href="/dashboard/orders" style={{ textDecoration: 'none' }}>
-            <div className="card" style={{ padding: '24px 20px', textAlign: 'center', cursor: 'pointer', position: 'relative' }}>
+            <div className="card" style={{ padding: '40px 24px', textAlign: 'center', cursor: 'pointer', position: 'relative', background: 'var(--bg-surface)' }}>
               {liveOrderCount > 0 && (
                 <div style={{
-                  position: 'absolute', top: 12, right: 12,
-                  background: '#ef4444', color: 'white',
-                  borderRadius: 20, padding: '2px 10px',
-                  fontSize: 12, fontWeight: 700,
+                  position: 'absolute', top: 20, right: 20,
+                  background: 'var(--brand-primary)', color: 'white',
+                  borderRadius: 100, padding: '4px 12px',
+                  fontSize: 12, fontWeight: 800,
                 }}>
-                  {liveOrderCount}
+                  {liveOrderCount} NEW
                 </div>
               )}
-              <div style={{ width: 48, height: 48, borderRadius: 12, background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                <ShoppingBag size={24} color="#ef4444" />
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--brand-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', border: '1px solid rgba(225, 29, 72, 0.3)' }}>
+                <ShoppingBag size={28} color="var(--brand-primary)" />
               </div>
-              <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>Live Orders</p>
-              <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>Manage & track</p>
+              <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Live Orders</p>
+              <p style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>View incoming orders</p>
             </div>
           </Link>
 
@@ -258,25 +219,26 @@ export default function DashboardPage() {
               className="card"
               onClick={toggleOrdering}
               style={{
-                background: restaurant.accept_orders ? '#ffffff' : '#fef2f2',
-                border: `1px solid ${restaurant.accept_orders ? 'var(--border)' : '#fca5a5'}`,
-                padding: '24px 20px', textAlign: 'center', cursor: 'pointer',
+                background: restaurant.accept_orders ? 'var(--bg-surface)' : 'rgba(225, 29, 72, 0.05)',
+                border: `1px solid ${restaurant.accept_orders ? 'var(--border)' : 'var(--brand-primary)'}`,
+                padding: '40px 24px', textAlign: 'center', cursor: 'pointer',
                 opacity: togglingOrders ? 0.6 : 1,
               }}
             >
               <div style={{
-                width: 48, height: 48, borderRadius: 12,
-                background: restaurant.accept_orders ? '#dcfce7' : '#fef2f2',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px',
+                width: 64, height: 64, borderRadius: '50%',
+                background: restaurant.accept_orders ? 'var(--brand-success-light)' : 'var(--brand-primary-light)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px',
+                border: `1px solid ${restaurant.accept_orders ? 'rgba(22, 163, 74, 0.3)' : 'rgba(225, 29, 72, 0.3)'}`
               }}>
                 {restaurant.accept_orders
-                  ? <Play size={24} color="#166534" />
-                  : <Pause size={24} color="#ef4444" />}
+                  ? <Play size={28} color="var(--brand-success)" />
+                  : <Pause size={28} color="var(--brand-primary)" />}
               </div>
-              <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>
-                {restaurant.accept_orders ? '🟢 Orders ON' : '🔴 Orders Paused'}
+              <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: restaurant.accept_orders ? 'var(--brand-success)' : 'var(--brand-primary)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                {restaurant.accept_orders ? 'Orders Open' : 'Orders Paused'}
               </p>
-              <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>
+              <p style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>
                 Tap to {restaurant.accept_orders ? 'pause' : 'resume'}
               </p>
             </div>
