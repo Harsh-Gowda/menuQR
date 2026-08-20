@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS payment_logs (
   razorpay_order_id    TEXT,
   razorpay_payment_id  TEXT,
   razorpay_signature   TEXT,
-  amount_inr           NUMERIC(8,2) NOT NULL DEFAULT 499,
+  amount_inr           NUMERIC(8,2) NOT NULL DEFAULT 299,
   status               TEXT NOT NULL DEFAULT 'pending', -- pending | success | failed
   payment_type         TEXT NOT NULL DEFAULT 'signup',  -- signup | renewal
   created_at           TIMESTAMPTZ DEFAULT NOW()
