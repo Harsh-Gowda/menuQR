@@ -73,7 +73,7 @@ export default function PaymentModal({ signupData, onClose, renewalMode = false 
         currency:    orderData.currency,
         order_id:    orderData.orderId,
         name:        'MenuQR',
-        description: 'MenuQR Pro — ₹499/month',
+        description: 'MenuQR Pro — ₹299/month',
         image:       '/favicon.ico',
         prefill: {
           name:    signupData.restaurantName,
@@ -257,7 +257,7 @@ export default function PaymentModal({ signupData, onClose, renewalMode = false 
                   <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>30 days access</p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <p style={{ fontSize: 24, fontWeight: 900, color: 'var(--text-primary)', margin: '0 0 2px' }}>₹499</p>
+                  <p style={{ fontSize: 24, fontWeight: 900, color: 'var(--text-primary)', margin: '0 0 2px' }}>₹299</p>
                   <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>per month</p>
                 </div>
               </div>
@@ -303,7 +303,7 @@ export default function PaymentModal({ signupData, onClose, renewalMode = false 
               }}
             >
               {step === 'loading' && '⏳ Loading payment…'}
-              {step === 'ready' && '💳 Pay ₹499 Securely'}
+              {step === 'ready' && '💳 Pay ₹299 Securely'}
               {step === 'processing' && '⏳ Processing…'}
             </button>
 

@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
-      amount_inr:          499,
+      amount_inr:          299,
       status:              'success',
       payment_type:        'signup',
     })

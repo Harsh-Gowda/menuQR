@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import crypto from 'crypto'
 
 /**
  * POST /api/payment/create-order
- * Creates a Razorpay order for ₹499/month subscription
+ * Creates a Razorpay order for ₹299/month subscription
  * Body: { signupData: { email, restaurantName, whatsapp } }  (store temporarily)
  */
 export async function POST(req: NextRequest) {
@@ -25,8 +24,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing signup data' }, { status: 400 })
     }
 
-    // Amount in paise (₹499 × 100)
-    const amountPaise = 49900
+    // Amount in paise (₹299 × 100)
+    const amountPaise = 29900
 
     // Create Razorpay order via their REST API
     const auth = Buffer.from(`${keyId}:${keySecret}`).toString('base64')
