@@ -41,12 +41,13 @@ export default function LoginPage() {
         <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 40 }}>
           <div style={{
             width: 44, height: 44, borderRadius: '50%',
-            background: 'var(--brand-primary)',
+            background: 'rgba(225,29,72,0.12)',
+            border: '1.5px solid rgba(225,29,72,0.35)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'white', fontWeight: 900, fontSize: 22,
+            fontSize: 22,
           }}>🍽️</div>
           <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '1px', textTransform: 'uppercase' }}>
-            MenuQR
+            MenuQ
           </span>
         </Link>
 

@@ -25,6 +25,10 @@ declare global {
   }
 }
 
+// ── Set this to true to skip Razorpay and create account directly ──────────────
+// Replace with false once you have a Razorpay account configured.
+const BYPASS_PAYMENT = true
+
 export default function PaymentModal({ signupData, onClose, renewalMode = false }: PaymentModalProps) {
   const router = useRouter()
   const supabase = createClient()
@@ -32,8 +36,13 @@ export default function PaymentModal({ signupData, onClose, renewalMode = false 
   const [errorMsg, setErrorMsg] = useState('')
   const rzpRef = useRef<unknown>(null)
 
-  // Load Razorpay script
+  // Load Razorpay script (skipped in bypass mode)
   useEffect(() => {
+    if (BYPASS_PAYMENT || renewalMode) {
+      setStep('ready')
+      return
+    }
+
     if (document.getElementById('razorpay-script')) {
       setStep('ready')
       return
@@ -47,9 +56,46 @@ export default function PaymentModal({ signupData, onClose, renewalMode = false 
       setErrorMsg('Failed to load payment gateway. Please check your internet connection.')
     }
     document.head.appendChild(script)
-  }, [])
+  }, [renewalMode])
 
+  // ── Bypass mode: create account without payment ──────────────────────────────
+  async function handleFreeSignup() {
+    setStep('processing')
+    setErrorMsg('')
+    try {
+      const res = await fetch('/api/payment/free-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ signupData }),
+      })
+      const data = await res.json()
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Account creation failed.')
+      }
+
+      // Sign in the new user
+      await supabase.auth.signInWithPassword({
+        email:    signupData.email,
+        password: signupData.password,
+      })
+
+      setStep('success')
+      setTimeout(() => router.push('/dashboard'), 1800)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Something went wrong.'
+      setErrorMsg(msg)
+      setStep('error')
+    }
+  }
+
+  // ── Razorpay flow ────────────────────────────────────────────────────────────
   async function openRazorpay() {
+    if (BYPASS_PAYMENT && !renewalMode) {
+      await handleFreeSignup()
+      return
+    }
+
     setStep('processing')
     setErrorMsg('')
 
@@ -72,8 +118,8 @@ export default function PaymentModal({ signupData, onClose, renewalMode = false 
         amount:      orderData.amount,
         currency:    orderData.currency,
         order_id:    orderData.orderId,
-        name:        'MenuQR',
-        description: 'MenuQR Pro — ₹299/month',
+        name:        'MenuQ',
+        description: 'MenuQ Pro — ₹299/month',
         image:       '/favicon.ico',
         prefill: {
           name:    signupData.restaurantName,
@@ -187,7 +233,7 @@ export default function PaymentModal({ signupData, onClose, renewalMode = false 
               </svg>
             </div>
             <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 12, color: 'var(--text-primary)' }}>
-              Payment Successful!
+              {renewalMode ? 'Subscription Renewed!' : 'Account Created!'}
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: 15 }}>
               {renewalMode
@@ -208,7 +254,7 @@ export default function PaymentModal({ signupData, onClose, renewalMode = false 
               fontSize: 36,
             }}>⚠️</div>
             <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12, color: 'var(--text-primary)' }}>
-              Payment Failed
+              {BYPASS_PAYMENT ? 'Account Setup Failed' : 'Payment Failed'}
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 28 }}>
               {errorMsg}
@@ -230,19 +276,36 @@ export default function PaymentModal({ signupData, onClose, renewalMode = false 
             <div style={{ textAlign: 'center', marginBottom: 32 }}>
               <div style={{
                 width: 56, height: 56, borderRadius: '50%',
-                background: 'var(--brand-primary)',
+                background: 'rgba(225,29,72,0.12)',
+                border: '1.5px solid rgba(225,29,72,0.35)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 margin: '0 auto 20px', fontSize: 24,
               }}>🍽️</div>
               <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8, color: 'var(--text-primary)' }}>
-                {renewalMode ? 'Renew Subscription' : 'Complete Your Purchase'}
+                {renewalMode ? 'Renew Subscription' : 'Create Your Account'}
               </h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
                 {renewalMode
                   ? 'Extend your access for another 30 days'
-                  : 'One-time setup — your account is ready after payment'}
+                  : BYPASS_PAYMENT
+                    ? 'Your account will be activated instantly'
+                    : 'One-time setup — your account is ready after payment'}
               </p>
             </div>
+
+            {/* Test mode banner */}
+            {BYPASS_PAYMENT && !renewalMode && (
+              <div style={{
+                background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)',
+                borderRadius: 'var(--radius-md)', padding: '10px 16px', marginBottom: 20,
+                display: 'flex', alignItems: 'center', gap: 10,
+              }}>
+                <span style={{ fontSize: 16 }}>🧪</span>
+                <span style={{ color: '#f59e0b', fontSize: 12, fontWeight: 700 }}>
+                  TEST MODE — Account created free, no payment required
+                </span>
+              </div>
+            )}
 
             {/* Plan summary */}
             <div style={{
@@ -252,13 +315,22 @@ export default function PaymentModal({ signupData, onClose, renewalMode = false 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <div>
                   <p style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', margin: '0 0 4px' }}>
-                    MenuQR Pro
+                    MenuQ Pro
                   </p>
                   <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>30 days access</p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <p style={{ fontSize: 24, fontWeight: 900, color: 'var(--text-primary)', margin: '0 0 2px' }}>₹299</p>
-                  <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>per month</p>
+                  {BYPASS_PAYMENT && !renewalMode ? (
+                    <>
+                      <p style={{ fontSize: 24, fontWeight: 900, color: 'var(--brand-success)', margin: '0 0 2px' }}>FREE</p>
+                      <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0, textDecoration: 'line-through' }}>₹299</p>
+                    </>
+                  ) : (
+                    <>
+                      <p style={{ fontSize: 24, fontWeight: 900, color: 'var(--text-primary)', margin: '0 0 2px' }}>₹299</p>
+                      <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>per month</p>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -299,16 +371,21 @@ export default function PaymentModal({ signupData, onClose, renewalMode = false 
                 width: '100%', padding: '16px', fontSize: 15,
                 textTransform: 'uppercase', letterSpacing: '1px',
                 opacity: (step === 'loading' || step === 'processing') ? 0.7 : 1,
-                boxShadow: '0 8px 24px rgba(225, 29, 72, 0.3)',
+                boxShadow: BYPASS_PAYMENT
+                  ? '0 8px 24px rgba(22, 163, 74, 0.25)'
+                  : '0 8px 24px rgba(225, 29, 72, 0.3)',
+                background: BYPASS_PAYMENT && !renewalMode ? 'var(--brand-success)' : undefined,
               }}
             >
-              {step === 'loading' && '⏳ Loading payment…'}
-              {step === 'ready' && '💳 Pay ₹299 Securely'}
-              {step === 'processing' && '⏳ Processing…'}
+              {step === 'loading' && '⏳ Loading…'}
+              {step === 'ready' && (BYPASS_PAYMENT && !renewalMode ? '🚀 Create Account — Free' : '💳 Pay ₹299 Securely')}
+              {step === 'processing' && '⏳ Setting up your account…'}
             </button>
 
             <p style={{ textAlign: 'center', marginTop: 16, fontSize: 12, color: 'var(--text-muted)' }}>
-              🔒 Secured by Razorpay · UPI, Cards, Net Banking accepted
+              {BYPASS_PAYMENT && !renewalMode
+                ? '🧪 Test mode · No payment needed · Add Razorpay later'
+                : '🔒 Secured by Razorpay · UPI, Cards, Net Banking accepted'}
             </p>
           </>
         )}

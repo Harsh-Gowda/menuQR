@@ -2,13 +2,13 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'MenuQR.in — Digital QR Menu for Indian Restaurants',
+  title: 'MenuQ — Digital QR Menu for Restaurants',
   description:
-    'Give your restaurant a QR menu that lets customers order via WhatsApp. No app download. No Swiggy/Zomato commission. Just ₹299/month.',
-  keywords: 'QR menu, restaurant menu, WhatsApp ordering, Indian restaurant, digital menu',
+    'Give your restaurant a QR menu that lets customers order directly. No app download. No commission. Just ₹299/month.',
+  keywords: 'QR menu, restaurant menu, digital menu, restaurant ordering, Indian restaurant',
   openGraph: {
-    title: 'MenuQR.in — Stop paying Swiggy ₹15,000/month',
-    description: 'Pay ₹299 instead. QR menu → WhatsApp orders. Zero commission.',
+    title: 'MenuQ — Digital Menu & Ordering for Restaurants',
+    description: 'Pay ₹299/month. QR menu → instant orders to your kitchen. Zero commission.',
     type: 'website',
   },
 }
