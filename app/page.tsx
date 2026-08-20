@@ -60,12 +60,13 @@ export default function HomePage() {
         <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
             width: 36, height: 36, borderRadius: '50%',
-            background: 'var(--brand-primary)',
+            background: 'rgba(225,29,72,0.12)',
+            border: '1.5px solid rgba(225,29,72,0.35)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'white', fontWeight: 900, fontSize: 18,
+            fontSize: 18,
           }}>🍽️</div>
           <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '1px', textTransform: 'uppercase' }}>
-            MenuQR
+            MenuQ
           </span>
         </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
@@ -131,7 +132,7 @@ export default function HomePage() {
                 Start Now — ₹299/mo
               </button>
             </Link>
-            <Link href="/menu/spice-garden" target="_blank" style={{ textDecoration: 'none' }}>
+            <Link href="/menu/demo" target="_blank" style={{ textDecoration: 'none' }}>
               <button style={{
                 background: 'transparent', border: '1px solid var(--border)',
                 color: 'var(--text-primary)', borderRadius: 'var(--radius-pill)',
@@ -270,9 +271,9 @@ export default function HomePage() {
           {/* CTA below flowchart */}
           <div style={{ textAlign: 'center', marginTop: 72 }}>
             <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20, textTransform: 'uppercase', letterSpacing: '1px' }}>
-              See a live restaurant using MenuQR right now
+              See a live restaurant using MenuQ right now
             </p>
-            <Link href="/menu/spice-garden" target="_blank" style={{ textDecoration: 'none' }}>
+            <Link href="/menu/demo" target="_blank" style={{ textDecoration: 'none' }}>
               <button className="btn-primary" style={{ padding: '14px 32px', fontSize: 14, textTransform: 'uppercase', letterSpacing: '1px' }}>
                 👁 Open Live Demo →
               </button>
@@ -412,7 +413,7 @@ export default function HomePage() {
         textAlign: 'center'
       }}>
         <p style={{ color: 'var(--text-muted)', fontSize: 14, textTransform: 'uppercase', letterSpacing: '1px' }}>
-          © {new Date().getFullYear()} MenuQR. All rights reserved.
+          © {new Date().getFullYear()} MenuQ. All rights reserved.
         </p>
       </footer>
 

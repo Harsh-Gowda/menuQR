@@ -181,8 +181,8 @@ export default function SignupPage() {
           {/* Mobile logo */}
           <div className="mobile-logo" style={{ display: 'none', marginBottom: 32, justifyContent: 'center' }}>
             <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--brand-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 900, fontSize: 18 }}>🍽️</div>
-              <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '1px', textTransform: 'uppercase' }}>MenuQR</span>
+              <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(225,29,72,0.12)', border: '1.5px solid rgba(225,29,72,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🍽️</div>
+              <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '1px', textTransform: 'uppercase' }}>MenuQ</span>
             </Link>
           </div>
 

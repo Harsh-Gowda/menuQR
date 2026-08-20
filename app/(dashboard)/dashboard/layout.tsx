@@ -137,13 +137,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <Link href="/dashboard" style={{ textDecoration: 'none', marginBottom: 48, display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
             width: 40, height: 40, borderRadius: '50%',
-            background: 'var(--brand-primary)',
+            background: 'rgba(225,29,72,0.12)',
+            border: '1.5px solid rgba(225,29,72,0.35)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'white', fontWeight: 900, fontSize: 18,
-            boxShadow: '0 0 20px rgba(225, 29, 72, 0.4)'
+            fontSize: 20,
           }}>🍽️</div>
           <div>
-            <p style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '1px', textTransform: 'uppercase' }}>MenuQR</p>
+            <p style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '1px', textTransform: 'uppercase' }}>MenuQ</p>
             {restaurant?.name_en && (
               <p style={{ fontSize: 12, color: 'var(--brand-primary)', margin: 0, fontWeight: 600, letterSpacing: '0.5px' }}>
                 {restaurant.name_en.length > 18 ? restaurant.name_en.slice(0, 18) + '…' : restaurant.name_en}
