@@ -47,18 +47,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         return
       }
 
-      const { data } = await supabase
+      const { data, error: restError } = await supabase
         .from('restaurants')
-        .select('slug, name_en, plan, subscription_active, subscription_ends_at, is_developer_account')
+        // NOTE: do NOT select is_developer_account here — column may not exist
+        // if migration hasn't been run. Derive from plan instead.
+        .select('slug, name_en, plan, subscription_active, subscription_ends_at')
         .eq('owner_user_id', user.id)
         .single()
 
+      if (restError) {
+        console.error('[dashboard] restaurant query error:', restError.message)
+        // Still mark as checked so layout renders
+        setAuthChecked(true)
+        return
+      }
+
       if (data) {
-        setRestaurant(data)
+        // Derive developer status from plan field
+        setRestaurant({
+          ...data,
+          is_developer_account: data.plan === 'developer',
+        })
 
         // ── Subscription guard ────────────────────────────────────────
         // Developer accounts: always allow
-        if (data.is_developer_account) {
+        if (data.plan === 'developer') {
           setAuthChecked(true)
           return
         }

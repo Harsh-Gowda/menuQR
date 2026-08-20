@@ -15,7 +15,8 @@ interface Restaurant {
   subscription_active: boolean
   subscription_ends_at: string | null
   subscription_started_at: string | null
-  is_developer_account: boolean
+  // is_developer_account may not exist if migration not run — derive from plan
+  is_developer_account?: boolean
 }
 
 interface PaymentLog {
@@ -55,33 +56,55 @@ export default function BillingPage() {
       if (!user) { router.push('/login'); return }
       setUserEmail(user.email || '')
 
-      const { data: rest } = await supabase
+      // ── Query restaurant WITHOUT is_developer_account (may not exist yet)
+      // Developer status is derived from plan === 'developer'
+      const { data: rest, error: restError } = await supabase
         .from('restaurants')
-        .select('id, name_en, plan, subscription_active, subscription_ends_at, subscription_started_at, is_developer_account')
+        .select('id, name_en, plan, subscription_active, subscription_ends_at, subscription_started_at')
         .eq('owner_user_id', user.id)
         .single()
 
-      if (rest) setRestaurant(rest)
+      if (restError) {
+        console.error('[billing] restaurant query error:', restError.message)
+        setLoading(false)
+        return
+      }
 
-      if (rest?.id) {
-        const { data: logs } = await supabase
-          .from('payment_logs')
-          .select('id, amount_inr, status, payment_type, razorpay_payment_id, created_at')
-          .eq('restaurant_id', rest.id)
-          .order('created_at', { ascending: false })
-          .limit(10)
-        if (logs) setPaymentLogs(logs)
+      if (rest) {
+        // Derive developer status from plan field
+        setRestaurant({
+          ...rest,
+          is_developer_account: rest.plan === 'developer',
+        })
+
+        // ── Try to fetch payment logs (table may not exist if migration not run)
+        try {
+          const { data: logs, error: logsError } = await supabase
+            .from('payment_logs')
+            .select('id, amount_inr, status, payment_type, razorpay_payment_id, created_at')
+            .eq('restaurant_id', rest.id)
+            .order('created_at', { ascending: false })
+            .limit(10)
+
+          if (!logsError && logs) setPaymentLogs(logs)
+        } catch {
+          // payment_logs table may not exist yet — silently skip
+        }
       }
 
       setLoading(false)
     }
     load()
-  }, [supabase, router])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-        <p style={{ color: 'var(--text-muted)', fontSize: 16 }}>Loading billing info…</p>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 32, marginBottom: 16, animation: 'spin 1s linear infinite' }}>⏳</div>
+          <p style={{ color: 'var(--text-muted)', fontSize: 15 }}>Loading billing info…</p>
+        </div>
       </div>
     )
   }
@@ -89,18 +112,26 @@ export default function BillingPage() {
   if (!restaurant) {
     return (
       <div style={{ textAlign: 'center', padding: '80px 24px' }}>
-        <p style={{ color: 'var(--text-muted)' }}>Restaurant not found. <Link href="/dashboard" style={{ color: 'var(--brand-primary)' }}>Go back</Link></p>
+        <div style={{ fontSize: 48, marginBottom: 24 }}>🍽️</div>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 12 }}>
+          No restaurant found
+        </h2>
+        <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>
+          Your account setup may not be complete.
+        </p>
+        <Link href="/dashboard" style={{ color: 'var(--brand-primary)', fontWeight: 700 }}>
+          ← Go to Dashboard
+        </Link>
       </div>
     )
   }
 
   const days = daysRemaining(restaurant.subscription_ends_at)
-  const isExpired = !restaurant.is_developer_account && (days !== null && days <= 0)
-  const isExpiringSoon = !restaurant.is_developer_account && (days !== null && days > 0 && days <= 5)
-  const isDeveloper = restaurant.is_developer_account
+  const isDeveloper = restaurant.plan === 'developer' || restaurant.is_developer_account === true
+  const isExpired = !isDeveloper && (days !== null && days <= 0)
+  const isExpiringSoon = !isDeveloper && (days !== null && days > 0 && days <= 5)
 
-  const statusColor = isDeveloper
-    ? '#16a34a'
+  const statusColor = isDeveloper ? '#16a34a'
     : isExpired ? '#E11D48'
     : isExpiringSoon ? '#f59e0b'
     : '#16a34a'
@@ -145,7 +176,7 @@ export default function BillingPage() {
           <p style={{ color: 'var(--text-secondary)', fontSize: 14, margin: '0 0 4px' }}>
             {isDeveloper
               ? 'Developer account — no payment required'
-              : `₹499 / month · Renews manually`}
+              : '₹299 / month · Renews manually'}
           </p>
           {!isDeveloper && restaurant.subscription_ends_at && (
             <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
@@ -172,7 +203,7 @@ export default function BillingPage() {
                   className="btn-primary"
                   style={{ padding: '14px 28px', boxShadow: '0 8px 24px rgba(225,29,72,0.3)' }}
                 >
-                  Reactivate — ₹499
+                  Reactivate — ₹299
                 </button>
               </div>
             ) : (
@@ -230,7 +261,10 @@ export default function BillingPage() {
         </h3>
 
         {paymentLogs.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>No payment records found.</p>
+          <div style={{ textAlign: 'center', padding: '24px 0' }}>
+            <span style={{ fontSize: 32, display: 'block', marginBottom: 12 }}>💳</span>
+            <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>No payment records yet.</p>
+          </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {paymentLogs.map(log => (
